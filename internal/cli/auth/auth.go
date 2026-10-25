@@ -113,7 +113,7 @@ func login(ctx context.Context, f *cmdutil.Factory, withToken, insecure bool) er
 
 	cred := &credstore.Credential{
 		Host:          host,
-		Account:       auth.DefaultAccount,
+		Account:       f.Account(),
 		Token:         token,
 		Organizations: toOrganizations(orgs),
 		CreatedAt:     time.Now().UTC().Truncate(time.Second),
@@ -221,7 +221,7 @@ dashboard. DEVLYFT_API_TOKEN is not affected.`,
 			if err != nil {
 				return err
 			}
-			if !hasCredential(creds, host) {
+			if !hasCredential(creds, host, f.Account()) {
 				e := auth.NotLoggedIn(host)
 				if f.Getenv(auth.EnvToken) != "" {
 					e.Hint = auth.EnvToken + " is set; unset it to stop using that token."
@@ -232,12 +232,12 @@ dashboard. DEVLYFT_API_TOKEN is not affected.`,
 			if err != nil || !ok {
 				return err
 			}
-			if err := store.Delete(ctx, host, auth.DefaultAccount); err != nil && !errors.Is(err, credstore.ErrNotFound) {
+			if err := store.Delete(ctx, host, f.Account()); err != nil && !errors.Is(err, credstore.ErrNotFound) {
 				return err
 			}
 			if formatRequested(f) {
 				return f.Printer.Print(output.Result{
-					Data: map[string]any{"host": host, "account": auth.DefaultAccount, "logged_out": true},
+					Data: map[string]any{"host": host, "account": f.Account(), "logged_out": true},
 					IDs:  []string{host},
 				})
 			}
@@ -389,9 +389,9 @@ func orgSummary(orgs []credstore.Organization) string {
 	return fmt.Sprintf("%d organizations: %s", len(orgs), orgNames(orgs))
 }
 
-func hasCredential(creds []credstore.Credential, host string) bool {
+func hasCredential(creds []credstore.Credential, host, account string) bool {
 	for _, c := range creds {
-		if c.Host == host && c.Account == auth.DefaultAccount {
+		if c.Host == host && c.Account == account {
 			return true
 		}
 	}

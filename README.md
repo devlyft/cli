@@ -52,6 +52,40 @@ The token is stored in the system keyring (Keychain, Credential Manager, or a Se
 
 In CI, set `DEVLYFT_API_TOKEN` instead of logging in. It takes precedence over any stored credential. Point the CLI at another API with `--api-url` or `DEVLYFT_API_URL`.
 
+## Configuration
+
+Settings live in `config.yaml` in the config directory (`~/.config/devlyft` on Linux, `~/Library/Application Support/devlyft` on macOS, `%AppData%\devlyft` on Windows), written with mode 0600.
+
+A **context** saves the organization, project, environment, location and credential account that commands use, so you don't repeat them:
+
+```sh
+devlyft context use prod --org acme --project web --environment production
+devlyft context use staging --org acme --project web --environment staging
+devlyft context list
+devlyft context show          # what this command line resolves to, and why
+devlyft context delete staging
+```
+
+`context use NAME` switches to NAME, creating it if needed, and saves any of `--org`, `--project`, `--environment`, `--location` and `--account` given with it (an empty value clears one). `--account` names the stored credential the context uses: `devlyft auth login` saves the token under the active context's account, or under `default` when the context names none, so credentials stored before contexts existed keep working.
+
+Every value is resolved in the same order:
+
+| | Flag | Environment variable | Then |
+|---|---|---|---|
+| Context | `--context` | `DEVLYFT_CONTEXT` | `current_context` |
+| Organization | `--org` | `DEVLYFT_ORG` | the context |
+| Project | `--project` | `DEVLYFT_PROJECT` | the context |
+| Environment | `--environment` | `DEVLYFT_ENV` | the context |
+| Location | `--location` | `DEVLYFT_LOCATION` | the context |
+| API URL | `--api-url` | `DEVLYFT_API_URL` | `api_url`, then `https://api.devlyft.io` |
+| CA bundle | | `DEVLYFT_CA_BUNDLE` | `ca_bundle` |
+
+Organizations, projects and environments can be given by name or ID; organizations also by slug. A name that matches more than one resource is an error that lists the matches. Scripts should use IDs.
+
+Top-level settings are managed with `devlyft config get|set|list` (`api_url`, `ca_bundle`, `current_context`; an empty value unsets one). Keys the CLI does not recognise are kept when it rewrites the file.
+
+**Proxies and TLS inspection.** `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` are honoured. If your network re-signs TLS traffic, point `DEVLYFT_CA_BUNDLE` or `devlyft config set ca_bundle` at a PEM file of the extra CA certificates; they are trusted in addition to the system roots, and every command that connects prints a notice while one is in use.
+
 ## Privacy and update checks
 
 devlyft has no telemetry in v1: it does not collect or send usage data.

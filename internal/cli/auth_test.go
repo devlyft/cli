@@ -288,6 +288,7 @@ func TestAuthGolden(t *testing.T) {
 			var clientTokens []string
 			f := &cmdutil.Factory{
 				IO:          ios,
+				ConfigDir:   t.TempDir(),
 				Getenv:      func(k string) string { return tt.env[k] },
 				Credentials: func() (credstore.Store, error) { return store, nil },
 				NewAPIClient: func(ts api.TokenSource) (api.Client, error) {
@@ -347,9 +348,10 @@ func TestAuthNeverLeaksToken(t *testing.T) {
 		ios, in, out, errOut := iostreams.Test()
 		in.WriteString(stdin)
 		f := &cmdutil.Factory{
-			IO:     ios,
-			APIURL: srv.URL,
-			Getenv: func(k string) string { return vars[k] },
+			IO:        ios,
+			ConfigDir: t.TempDir(),
+			APIURL:    srv.URL,
+			Getenv:    func(k string) string { return vars[k] },
 			Credentials: func() (credstore.Store, error) {
 				return credstore.New(credstore.Options{Dir: dir, Env: &env, Warn: func(string) {}}), nil
 			},
