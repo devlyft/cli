@@ -9,13 +9,20 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/spf13/cobra"
 
+	"github.com/devlyft/cli/internal/api"
+	"github.com/devlyft/cli/internal/auth"
+	"github.com/devlyft/cli/internal/auth/credstore"
+	authcmd "github.com/devlyft/cli/internal/cli/auth"
 	"github.com/devlyft/cli/internal/clierr"
 	"github.com/devlyft/cli/internal/cmdutil"
+	"github.com/devlyft/cli/internal/config"
 	"github.com/devlyft/cli/internal/exitcode"
 	"github.com/devlyft/cli/internal/iostreams"
+	"github.com/devlyft/cli/internal/logging"
 	"github.com/devlyft/cli/internal/output"
 )
 
@@ -26,6 +33,7 @@ type globalFlags struct {
 	quiet     bool
 	noColor   bool
 	verbosity string
+	apiURL    string
 }
 
 // NewRootCmd returns the root `devlyft` command with all subcommands attached.
@@ -55,10 +63,12 @@ func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 	pf.StringVar(&flags.jq, "jq", "", "Filter JSON output with a jq expression")
 	pf.BoolVarP(&flags.quiet, "quiet", "q", false, "Print only resource IDs")
 	pf.BoolVar(&flags.noColor, "no-color", false, "Disable colour (also NO_COLOR)")
-	pf.StringVar(&flags.verbosity, "verbosity", "warning", "Log level for diagnostics on stderr: "+strings.Join(cmdutil.Verbosities, ", ")+" (DEVLYFT_DEBUG=1 for debug)")
+	pf.StringVar(&flags.verbosity, "verbosity", "warning", "Log level for diagnostics on stderr: "+strings.Join(logging.Verbosities, ", ")+" (DEVLYFT_DEBUG=1 for debug)")
+	pf.StringVar(&flags.apiURL, "api-url", "", "DevLyft API URL (also DEVLYFT_API_URL; default "+config.DefaultAPIURL+")")
 
 	root.AddCommand(newVersionCmd())
 	root.AddCommand(newCompletionCmd())
+	root.AddCommand(authcmd.NewCmd(f))
 
 	return root
 }
@@ -83,12 +93,51 @@ func setup(f *cmdutil.Factory, flags *globalFlags) error {
 	if os.Getenv("DEVLYFT_DEBUG") == "1" {
 		verbosity = "debug"
 	}
-	level, enabled, err := cmdutil.ParseVerbosity(verbosity)
+	level, enabled, err := logging.ParseVerbosity(verbosity)
 	if err != nil {
 		return err
 	}
-	f.Log = cmdutil.NewLogger(f.IO.ErrOut, level, enabled)
+	f.Log = logging.NewLogger(f.IO.ErrOut, level, enabled)
+
+	setupAuth(f, flags)
 	return nil
+}
+
+// setupAuth fills the API and credential dependencies tests have not
+// already set.
+func setupAuth(f *cmdutil.Factory, flags *globalFlags) {
+	if f.Getenv == nil {
+		f.Getenv = os.Getenv
+	}
+	if f.APIURL == "" {
+		f.APIURL = config.ResolveAPIURL(flags.apiURL, f.Getenv)
+	}
+	if f.Credentials == nil {
+		f.Credentials = sync.OnceValues(func() (credstore.Store, error) {
+			dir, err := config.Dir()
+			if err != nil {
+				return nil, err
+			}
+			timeout := credstore.TimeoutNonInteractive
+			if f.IO.CanPrompt() {
+				timeout = credstore.TimeoutInteractive
+			}
+			return credstore.New(credstore.Options{
+				Dir:     dir,
+				Timeout: timeout,
+				Warn: func(msg string) {
+					if !flags.quiet {
+						_, _ = fmt.Fprintln(f.IO.ErrOut, msg)
+					}
+				},
+			}), nil
+		})
+	}
+	if f.NewAPIClient == nil {
+		f.NewAPIClient = func(tokens api.TokenSource) (api.Client, error) {
+			return api.New(api.Options{BaseURL: f.APIURL, Tokens: tokens, Logger: f.Log})
+		}
+	}
 }
 
 // Execute runs the CLI with args and returns the process exit code. It is
@@ -129,6 +178,14 @@ func execute(ctx context.Context, f *cmdutil.Factory, root *cobra.Command, args 
 	e := clierr.As(err)
 	if !ranPreRun && e.Code == clierr.CodeInternal {
 		e = &clierr.Error{Code: clierr.CodeInvalidArgument, Message: err.Error(), Usage: true, Err: err}
+	}
+	if e.Code == clierr.CodeAuthRequired && e.HTTPStatus != 0 && e.Hint == "" {
+		// The API rejected the token; say which one.
+		getenv := f.Getenv
+		if getenv == nil {
+			getenv = os.Getenv
+		}
+		e.Hint = auth.Hint(getenv)
 	}
 	if e.Usage && e.Hint == "" {
 		e.Hint = fmt.Sprintf("Run '%s --help' for usage.", commandPath(root, args))

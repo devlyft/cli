@@ -39,6 +39,19 @@ go install github.com/devlyft/cli/cmd/devlyft@latest
 
 Or download an archive or package from [Releases](https://github.com/devlyft/cli/releases). Every release file is listed in a cosign-signed checksum file; see [docs/releasing.md](docs/releasing.md#verifying-a-download) to verify a download.
 
+## Authentication
+
+Create an API token in the dashboard, then log in with it. The token is read from standard input, so it never lands in your shell history:
+
+```sh
+devlyft auth login --with-token < token.txt
+devlyft auth status
+```
+
+The token is stored in the system keyring (Keychain, Credential Manager, or a Secret Service provider such as gnome-keyring). Where no keyring is usable, as in containers, CI and WSL, it is stored in `credentials.json` in the config directory with mode 0600, and devlyft tells you so. `--insecure-storage` chooses the file deliberately.
+
+In CI, set `DEVLYFT_API_TOKEN` instead of logging in. It takes precedence over any stored credential. Point the CLI at another API with `--api-url` or `DEVLYFT_API_URL`.
+
 ## Privacy and update checks
 
 devlyft has no telemetry in v1: it does not collect or send usage data.

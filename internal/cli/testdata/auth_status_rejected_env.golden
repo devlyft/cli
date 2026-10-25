@@ -1,0 +1,7 @@
+$ devlyft auth status
+--- exit 3
+--- stdout
+--- stderr
+Error: DEVLYFT_API_TOKEN was rejected by api.devlyft.io
+Hint: DEVLYFT_API_TOKEN is invalid or expired.
+Request ID: req-401

@@ -1,0 +1,5 @@
+$ devlyft auth token
+--- exit 0
+--- stdout
+dvl_ENVENVENVENVENVENVENVENVENVENVENVENVENVENV
+--- stderr

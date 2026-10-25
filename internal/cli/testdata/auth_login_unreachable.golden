@@ -1,0 +1,5 @@
+$ devlyft auth login --with-token
+--- exit 1
+--- stdout
+--- stderr
+Error: cannot reach api.devlyft.io

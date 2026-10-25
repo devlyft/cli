@@ -3,3 +3,4 @@ $ devlyft fail --status 401
 --- stdout
 --- stderr
 Error: server said no
+Hint: Run `devlyft auth login --with-token` to log in again.

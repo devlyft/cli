@@ -31,6 +31,8 @@ var (
 	paramRE = regexp.MustCompile(`(?i)\b((?:[a-z_]*token|secret|password|code_verifier|code|client_secret)=)[^&\s"]+`)
 	// JWTs on their own.
 	jwtRE = regexp.MustCompile(`\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`)
+	// DevLyft API tokens: "dvl_" and 32 random bytes in base64url.
+	apiTokenRE = regexp.MustCompile(`\bdvl_[A-Za-z0-9_-]{16,}`)
 )
 
 // String redacts bearer tokens, JWTs, sensitive JSON fields and sensitive
@@ -40,6 +42,7 @@ func String(s string) string {
 	s = jsonFieldRE.ReplaceAllString(s, `${1}"`+Placeholder+`"`)
 	s = paramRE.ReplaceAllString(s, "${1}"+Placeholder)
 	s = jwtRE.ReplaceAllString(s, Placeholder)
+	s = apiTokenRE.ReplaceAllString(s, Placeholder)
 	return s
 }
 

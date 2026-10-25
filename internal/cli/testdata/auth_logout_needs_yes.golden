@@ -1,0 +1,6 @@
+$ devlyft auth logout
+--- exit 2
+--- stdout
+--- stderr
+Error: Log out of api.devlyft.io: pass --yes to confirm when not running interactively
+Hint: Run 'devlyft auth logout --help' for usage.

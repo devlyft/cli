@@ -1,0 +1,6 @@
+$ devlyft auth login --token dvl_0123456789abcdefghijklmnopqrstuvwxyzABCDE
+--- exit 2
+--- stdout
+--- stderr
+Error: unknown flag: --token
+Hint: Run 'devlyft auth login --help' for usage.

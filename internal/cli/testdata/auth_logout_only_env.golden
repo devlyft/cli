@@ -1,0 +1,6 @@
+$ devlyft auth logout --yes
+--- exit 3
+--- stdout
+--- stderr
+Error: not logged in to api.devlyft.io
+Hint: DEVLYFT_API_TOKEN is set; unset it to stop using that token.

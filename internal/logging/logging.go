@@ -1,4 +1,6 @@
-package cmdutil
+// Package logging builds the debug logger: slog to stderr at the
+// --verbosity level, with every message and string attribute redacted.
+package logging
 
 import (
 	"context"

@@ -1,0 +1,7 @@
+$ devlyft auth status
+--- exit 3
+--- stdout
+--- stderr
+Error: the stored credential for api.devlyft.io was rejected
+Hint: Run `devlyft auth login --with-token` to log in again.
+Request ID: req-401

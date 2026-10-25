@@ -1,0 +1,9 @@
+$ devlyft auth logout --yes --format json
+--- exit 0
+--- stdout
+{
+  "account": "default",
+  "host": "api.devlyft.io",
+  "logged_out": true
+}
+--- stderr

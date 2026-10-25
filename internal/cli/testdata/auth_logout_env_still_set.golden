@@ -1,0 +1,5 @@
+$ devlyft auth logout --yes
+--- exit 0
+--- stdout
+--- stderr
+Logged out of api.devlyft.io. DEVLYFT_API_TOKEN is still set and will be used.
