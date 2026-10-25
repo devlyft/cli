@@ -4,6 +4,7 @@
 package cmdutil
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/devlyft/cli/internal/api"
@@ -30,6 +31,10 @@ type Factory struct {
 	Credentials func() (credstore.Store, error)
 	// NewAPIClient returns an API client for APIURL using tokens.
 	NewAPIClient func(tokens api.TokenSource) (api.Client, error)
+
+	// API, when set, overrides Client. Tests use it to inject the gomock
+	// client from internal/api/mock.
+	API func() (api.Client, error)
 }
 
 // Host is the API host credentials are stored under.
@@ -48,3 +53,18 @@ func (f *Factory) APIClient() (api.Client, error) {
 
 // YesFlagUsage is the help text for the --yes flag on destructive commands.
 const YesFlagUsage = "Skip the confirmation prompt (required when not running interactively)"
+
+// ErrNoAPI is returned by Client when no API client has been configured.
+var ErrNoAPI = errors.New("no API client configured")
+
+// Client returns the API client commands should use: API when a test has
+// set it, otherwise one authenticated with the resolved credential.
+func (f *Factory) Client() (api.Client, error) {
+	if f.API != nil {
+		return f.API()
+	}
+	if f.NewAPIClient == nil {
+		return nil, ErrNoAPI
+	}
+	return f.APIClient()
+}
