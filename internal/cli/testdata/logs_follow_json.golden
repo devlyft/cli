@@ -1,0 +1,9 @@
+$ devlyft logs 6f1d3c2a-8a4b-4f7e-9c11-2b3d4e5f6a7b -f --format json
+--- exit 0
+--- stdout
+{"line":"listening on :8080","pod":"web-1","timestamp":"2026-10-25T12:00:01Z"}
+{"line":"{\"level\":\"error\",\"msg\":\"db\\ttimeout\"}","pod":"web-2","timestamp":"2026-10-25T12:00:02.5Z"}
+{"line":"no pod","timestamp":"2026-10-25T12:00:03Z"}
+{"line":"GET / 200","pod":"web-1","timestamp":"2026-10-25T12:00:04Z"}
+--- stderr
+level=WARN msg="Log stream interrupted; reconnecting."

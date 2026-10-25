@@ -2,13 +2,16 @@ package api
 
 import (
 	"context"
+	"strconv"
+	"time"
 
 	"github.com/devlyft/cli/internal/api/gen/logs"
 	"github.com/devlyft/cli/internal/api/gen/metrics"
+	"github.com/devlyft/cli/internal/api/logstream"
 )
 
 // Logs are served by logs-api and metrics by metrics-api. Following logs
-// over the WebSocket is hand-written in internal/api/logstream (#254).
+// over the WebSocket is hand-written in internal/api/logstream.
 
 // LogsQuery narrows a log read. Empty fields use the server's defaults.
 type LogsQuery struct {
@@ -46,6 +49,82 @@ func (c *client) GetLogs(ctx context.Context, deployID string, q *LogsQuery) (*L
 		return nil, c.transportError(err)
 	}
 	return expect(r.HTTPResponse, r.Body, r.JSON200, *n)
+}
+
+// gapFillLimit is the most lines one gap-fill asks for: the API's maximum.
+const gapFillLimit = 5000
+
+// FollowOptions configure FollowLogs.
+type FollowOptions struct {
+	// Pod, Filter and Match narrow the stream as in LogsQuery.
+	Pod    string
+	Filter string
+	Match  []string
+	// Cursor is the cursor of the GetLogs page already shown; the stream
+	// continues from it. Empty starts from the moment of connection.
+	Cursor string
+	// Seen are the entries already shown, so they are not repeated.
+	Seen []LogEntry
+	// Warn reports reconnects and gaps; nil drops them.
+	Warn func(msg string)
+}
+
+func (c *client) FollowLogs(ctx context.Context, deployID string, opts *FollowOptions, emit func(LogEntry) error) error {
+	id, err := parseID("deploy", deployID)
+	if err != nil {
+		return err
+	}
+	tokens := c.doer.tokens
+	if tokens == nil {
+		tokens = StaticToken("")
+	}
+	dial := &logstream.DialOptions{
+		BaseURL:  c.baseURL,
+		DeployID: id.String(),
+		Pod:      opts.Pod,
+		Filter:   opts.Filter,
+		Match:    opts.Match,
+		Token:    tokens.Token,
+		// The same client as every REST call, so proxy and CA settings
+		// apply to the WebSocket too.
+		HTTPClient: c.doer.hc,
+		UserAgent:  c.doer.ua,
+		Logger:     c.doer.log,
+	}
+	cfg := &logstream.Config{
+		Dial: func(ctx context.Context) (logstream.Conn, error) { return logstream.Dial(ctx, dial) },
+		History: func(ctx context.Context, since time.Duration) ([]logstream.Entry, bool, error) {
+			page, err := c.GetLogs(ctx, id.String(), &LogsQuery{
+				Pod:    opts.Pod,
+				Filter: opts.Filter,
+				Match:  opts.Match,
+				Since:  roundUpSeconds(since),
+				Limit:  gapFillLimit,
+			})
+			if err != nil {
+				return nil, false, err
+			}
+			return page.Entries, len(page.Entries) >= gapFillLimit, nil
+		},
+		Seen: opts.Seen,
+		Warn: opts.Warn,
+	}
+	if opts.Cursor != "" {
+		if ts, err := time.Parse(time.RFC3339Nano, opts.Cursor); err == nil {
+			cfg.Last = ts
+		}
+	}
+	return logstream.Follow(ctx, cfg, emit)
+}
+
+// roundUpSeconds formats d as a whole number of seconds, rounded up, in
+// the Go duration syntax the logs API takes for `since`.
+func roundUpSeconds(d time.Duration) string {
+	s := (d + time.Second - 1) / time.Second
+	if s < 1 {
+		s = 1
+	}
+	return strconv.FormatInt(int64(s), 10) + "s"
 }
 
 // MetricsQuery selects a metric series. Metric is required; empty optional

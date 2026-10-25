@@ -1,0 +1,6 @@
+$ devlyft logs 6f1d3c2a-8a4b-4f7e-9c11-2b3d4e5f6a7b
+--- exit 4
+--- stdout
+--- stderr
+Error: deploy not found
+Request ID: req-1

@@ -1,0 +1,6 @@
+$ devlyft logs 6f1d3c2a-8a4b-4f7e-9c11-2b3d4e5f6a7b --limit 6000
+--- exit 2
+--- stdout
+--- stderr
+Error: invalid --limit 6000: must be between 1 and 5000
+Hint: Run 'devlyft logs --help' for usage.

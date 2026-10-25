@@ -1,0 +1,6 @@
+$ devlyft logs
+--- exit 2
+--- stdout
+--- stderr
+Error: accepts 1 arg(s), received 0
+Hint: Run 'devlyft logs --help' for usage.
