@@ -1,0 +1,12 @@
+# Help goes to stdout and exits 0.
+exec devlyft --help
+stdout '^devlyft is the official command-line interface for DevLyft\.'
+stdout '^\s+completion\s'
+stdout '^\s+version\s'
+stdout '--format string'
+stdout '--jq string'
+! stderr .
+
+exec devlyft help version
+stdout 'Print the devlyft version'
+! stderr .

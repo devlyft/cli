@@ -1,0 +1,10 @@
+# version prints one line to stdout and nothing to stderr.
+exec devlyft version
+stdout '^devlyft \S+ .*go1\.\S+ \S+/\S+\n$'
+! stderr .
+
+# Arguments are a usage error: exit 2 with a hint.
+exitcode 2 devlyft version extra
+! stdout .
+stderr '^Error: unknown command "extra" for "devlyft version"'
+stderr '^Hint: Run ''devlyft version --help'' for usage\.'

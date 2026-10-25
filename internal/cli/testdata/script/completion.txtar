@@ -1,0 +1,24 @@
+# Every supported shell gets a script on stdout that registers devlyft.
+exec devlyft completion bash
+stdout 'devlyft'
+! stderr .
+
+exec devlyft completion zsh
+stdout '#compdef devlyft'
+! stderr .
+
+exec devlyft completion fish
+stdout 'complete -c devlyft'
+! stderr .
+
+exec devlyft completion powershell
+stdout 'Register-ArgumentCompleter'
+! stderr .
+
+# Unknown or missing shells are usage errors.
+exitcode 2 devlyft completion tcsh
+! stdout .
+stderr 'invalid argument "tcsh"'
+
+exitcode 2 devlyft completion
+! stdout .

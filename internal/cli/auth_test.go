@@ -21,6 +21,7 @@ import (
 	"github.com/devlyft/cli/internal/cmdutil"
 	"github.com/devlyft/cli/internal/exitcode"
 	"github.com/devlyft/cli/internal/iostreams"
+	"github.com/devlyft/cli/internal/testutil/golden"
 )
 
 //nolint:gosec // fake tokens
@@ -307,7 +308,7 @@ func TestAuthGolden(t *testing.T) {
 			}
 			got := fmt.Sprintf("$ devlyft %s\n--- exit %d\n--- stdout\n%s--- stderr\n%s",
 				strings.Join(tt.args, " "), code, stdout.String(), stderr.String())
-			assertGolden(t, filepath.Join("testdata", tt.name+".golden"), got)
+			golden.Assert(t, filepath.Join("testdata", tt.name+".golden"), got)
 		})
 	}
 }

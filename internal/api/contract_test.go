@@ -1,21 +1,10 @@
 package api
 
 import (
-	"bytes"
-	"context"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"path/filepath"
 	"slices"
-	"strings"
-	"sync"
 	"testing"
 
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/getkin/kin-openapi/openapi3filter"
-	"github.com/getkin/kin-openapi/routers"
-	"github.com/getkin/kin-openapi/routers/legacy"
+	"github.com/devlyft/cli/internal/testutil/apitest"
 )
 
 // Contract tests: every request the facade sends must match an operation
@@ -77,106 +66,19 @@ var responses = map[string]string{
 	"GetV1PodsPodIdMetrics":                                   metricsJSON,
 }
 
-// contractServer validates every exchange against the vendored specs.
-type contractServer struct {
-	t       *testing.T
-	routers []routers.Router
-	mu      sync.Mutex
-	seen    []string
-}
-
-func newContractServer(t *testing.T) (*contractServer, *httptest.Server) {
-	t.Helper()
-	cs := &contractServer{t: t}
-	srv := httptest.NewServer(cs)
-	t.Cleanup(srv.Close)
-
-	for _, name := range []string{"deploys", "org", "logs", "metrics"} {
-		loader := openapi3.NewLoader()
-		doc, err := loader.LoadFromFile(filepath.Join("specs", name+".yaml"))
-		if err != nil {
-			t.Fatalf("loading %s spec: %v", name, err)
-		}
-		if err := doc.Validate(loader.Context); err != nil {
-			t.Fatalf("%s spec is invalid: %v", name, err)
-		}
-		doc.Servers = openapi3.Servers{{URL: srv.URL}}
-		r, err := legacy.NewRouter(doc)
-		if err != nil {
-			t.Fatal(err)
-		}
-		cs.routers = append(cs.routers, r)
+// canned turns the response bodies into apitest responses.
+func canned() map[string]apitest.Response {
+	out := make(map[string]apitest.Response, len(responses))
+	for id, body := range responses {
+		out[id] = apitest.Response{Body: body}
 	}
-	return cs, srv
-}
-
-func (cs *contractServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// Server-side URLs have no scheme or host; the router matches them
-	// against the spec's server URL.
-	req.URL.Scheme, req.URL.Host = "http", req.Host
-	var route *routers.Route
-	var params map[string]string
-	for _, r := range cs.routers {
-		if rt, p, err := r.FindRoute(req); err == nil {
-			route, params = rt, p
-			break
-		}
-	}
-	if route == nil {
-		cs.t.Errorf("%s %s matches no vendored operation", req.Method, req.URL.Path)
-		http.Error(w, "no route", http.StatusNotFound)
-		return
-	}
-	id := route.Operation.OperationID
-	cs.mu.Lock()
-	cs.seen = append(cs.seen, id)
-	cs.mu.Unlock()
-
-	ctx := context.Background() //nolint:usetesting // validation outlives no test
-	in := &openapi3filter.RequestValidationInput{
-		Request:    req,
-		PathParams: params,
-		Route:      route,
-		Options:    &openapi3filter.Options{MultiError: true},
-	}
-	if err := openapi3filter.ValidateRequest(ctx, in); err != nil {
-		cs.t.Errorf("%s: request does not match the spec: %v", id, err)
-	}
-
-	body := responses[id]
-	status := successStatus(route.Operation)
-	out := &openapi3filter.ResponseValidationInput{
-		RequestValidationInput: in,
-		Status:                 status,
-		Header:                 http.Header{"Content-Type": {"application/json"}},
-		Body:                   io.NopCloser(strings.NewReader(body)),
-		Options:                &openapi3filter.Options{MultiError: true, IncludeResponseStatus: true},
-	}
-	if err := openapi3filter.ValidateResponse(ctx, out); err != nil {
-		cs.t.Errorf("%s: canned response does not match the spec: %v", id, err)
-	}
-
-	if body != "" {
-		w.Header().Set("Content-Type", "application/json")
-	}
-	w.WriteHeader(status)
-	_, _ = io.Copy(w, bytes.NewBufferString(body))
-}
-
-// successStatus is the operation's 2xx response code.
-func successStatus(op *openapi3.Operation) int {
-	for _, code := range []int{200, 201, 204} {
-		if op.Responses.Status(code) != nil {
-			return code
-		}
-	}
-	return 200
+	return out
 }
 
 func TestContract(t *testing.T) {
 	t.Parallel()
 
-	cs, srv := newContractServer(t)
+	srv := apitest.NewServer(t, canned())
 	c, err := New(Options{BaseURL: srv.URL, Tokens: StaticToken("t"), HTTPClient: srv.Client()})
 	if err != nil {
 		t.Fatal(err)
@@ -244,7 +146,7 @@ func TestContract(t *testing.T) {
 	// Every vendored operation is exercised, so the allowlist carries
 	// nothing the CLI does not use.
 	for id := range responses {
-		if !slices.Contains(cs.seen, id) {
+		if !slices.Contains(srv.Seen(), id) {
 			t.Errorf("operation %s was never called", id)
 		}
 	}
