@@ -39,6 +39,20 @@ go install github.com/devlyft/cli/cmd/devlyft@latest
 
 Or download an archive or package from [Releases](https://github.com/devlyft/cli/releases). Every release file is listed in a cosign-signed checksum file; see [docs/releasing.md](docs/releasing.md#verifying-a-download) to verify a download.
 
+## Privacy and update checks
+
+devlyft has no telemetry in v1: it does not collect or send usage data.
+
+The only network call it makes besides your own API requests is a check
+for a newer release, at most once a day: an unauthenticated request to
+`https://api.github.com/repos/devlyft/cli/releases/latest`. If a newer
+version exists, a one-line notice is printed to stderr after the command
+finishes. The check runs alongside the command and never delays it.
+
+It is skipped when `CI` is set, when stderr is not a terminal, for
+development builds, and for `devlyft version` and `devlyft completion`.
+To turn it off, set `DEVLYFT_NO_UPDATE_NOTIFIER=1`.
+
 ## Development
 
 Requires Go 1.26 or later.
