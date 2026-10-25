@@ -93,6 +93,7 @@ func Run(tb testing.TB, opts *Options) Result {
 // temporary directory, so tests never read or write the developer's own
 // credentials or keyring.
 func tempCredentials(tb testing.TB) func() (credstore.Store, error) {
+	tb.Helper()
 	dir := tb.TempDir()
 	env := credstore.Env{
 		Getenv:     func(k string) string { return map[string]string{"CI": "1"}[k] },
