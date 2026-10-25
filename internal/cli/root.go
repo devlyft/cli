@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -17,6 +18,7 @@ import (
 	"github.com/devlyft/cli/internal/auth"
 	"github.com/devlyft/cli/internal/auth/credstore"
 	authcmd "github.com/devlyft/cli/internal/cli/auth"
+	configcmd "github.com/devlyft/cli/internal/cli/config"
 	"github.com/devlyft/cli/internal/clierr"
 	"github.com/devlyft/cli/internal/cmdutil"
 	"github.com/devlyft/cli/internal/config"
@@ -33,7 +35,7 @@ type globalFlags struct {
 	quiet     bool
 	noColor   bool
 	verbosity string
-	apiURL    string
+	scope     config.Flags
 }
 
 // NewRootCmd returns the root `devlyft` command with all subcommands attached.
@@ -47,8 +49,8 @@ func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 		Long:          "devlyft is the official command-line interface for DevLyft.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PersistentPreRunE: func(*cobra.Command, []string) error {
-			return setup(f, &flags)
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			return setup(cmd, f, &flags)
 		},
 	}
 	root.SetIn(f.IO.In)
@@ -64,17 +66,25 @@ func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 	pf.BoolVarP(&flags.quiet, "quiet", "q", false, "Print only resource IDs")
 	pf.BoolVar(&flags.noColor, "no-color", false, "Disable colour (also NO_COLOR)")
 	pf.StringVar(&flags.verbosity, "verbosity", "warning", "Log level for diagnostics on stderr: "+strings.Join(logging.Verbosities, ", ")+" (DEVLYFT_DEBUG=1 for debug)")
-	pf.StringVar(&flags.apiURL, "api-url", "", "DevLyft API URL (also DEVLYFT_API_URL; default "+config.DefaultAPIURL+")")
+	pf.StringVar(&flags.scope.APIURL, "api-url", "", "DevLyft API URL (also "+config.EnvAPIURL+"; default "+config.DefaultAPIURL+")")
+	pf.StringVar(&flags.scope.Context, "context", "", "Context to use for this command instead of the current one (also "+config.EnvContext+")")
+	pf.StringVar(&flags.scope.Org, "org", "", "Organization ID, slug or name (also "+config.EnvOrg+")")
+	pf.StringVar(&flags.scope.Project, "project", "", "Project ID or name (also "+config.EnvProject+")")
+	pf.StringVar(&flags.scope.Env, "environment", "", "Environment ID or name (also "+config.EnvEnv+")")
+	pf.StringVar(&flags.scope.Location, "location", "", "Location (also "+config.EnvLocation+")")
 
 	root.AddCommand(newVersionCmd())
 	root.AddCommand(newCompletionCmd())
 	root.AddCommand(authcmd.NewCmd(f))
+	root.AddCommand(configcmd.NewConfigCmd(f))
+	root.AddCommand(configcmd.NewContextCmd(f))
 
 	return root
 }
 
-// setup validates the global flags and builds the printer and logger.
-func setup(f *cmdutil.Factory, flags *globalFlags) error {
+// setup validates the global flags, builds the printer and logger, loads
+// the config file and resolves the scope.
+func setup(cmd *cobra.Command, f *cmdutil.Factory, flags *globalFlags) error {
 	format, err := output.ParseFormat(flags.format)
 	if err != nil {
 		return err
@@ -99,25 +109,70 @@ func setup(f *cmdutil.Factory, flags *globalFlags) error {
 	}
 	f.Log = logging.NewLogger(f.IO.ErrOut, level, enabled)
 
-	setupAuth(f, flags)
-	return nil
-}
-
-// setupAuth fills the API and credential dependencies tests have not
-// already set.
-func setupAuth(f *cmdutil.Factory, flags *globalFlags) {
 	if f.Getenv == nil {
 		f.Getenv = os.Getenv
 	}
+	if annotated(cmd, cmdutil.NoConfig) {
+		return nil
+	}
+	if f.ConfigDir == "" {
+		dir, err := config.Dir()
+		if err != nil {
+			return err
+		}
+		f.ConfigDir = dir
+	}
+	if f.Config == nil {
+		file, err := config.Load(f.ConfigDir)
+		if err != nil {
+			return err
+		}
+		f.Config = file
+	}
+	if annotated(cmd, cmdutil.NoScope) {
+		return nil
+	}
+	if f.Scope == nil {
+		scope, err := config.ResolveScope(f.Config, &flags.scope, f.Getenv)
+		if err != nil {
+			return err
+		}
+		f.Scope = scope
+	}
 	if f.APIURL == "" {
-		f.APIURL = config.ResolveAPIURL(flags.apiURL, f.Getenv)
+		f.APIURL = f.Scope.APIURL.Value
+	}
+	setupNetwork(f, flags)
+	return nil
+}
+
+// annotated reports whether cmd or one of its parents carries key.
+func annotated(cmd *cobra.Command, key string) bool {
+	for c := cmd; c != nil; c = c.Parent() {
+		if c.Annotations[key] == "true" {
+			return true
+		}
+	}
+	return false
+}
+
+// setupNetwork fills the HTTP, API and credential dependencies tests have
+// not already set.
+func setupNetwork(f *cmdutil.Factory, flags *globalFlags) {
+	if f.HTTPClient == nil {
+		f.HTTPClient = sync.OnceValues(func() (*http.Client, error) {
+			ca := f.Scope.CABundle
+			if ca.Value != "" {
+				// Always shown, even with --quiet: trusting extra CAs
+				// changes who can read this traffic.
+				_, _ = fmt.Fprintf(f.IO.ErrOut, "Notice: trusting extra CA certificates from %s (%s).\n", ca.Value, caSource(ca.Source))
+			}
+			return config.NewHTTPClient(config.HTTPOptions{CABundle: ca.Value, Getenv: f.Getenv})
+		})
 	}
 	if f.Credentials == nil {
 		f.Credentials = sync.OnceValues(func() (credstore.Store, error) {
-			dir, err := config.Dir()
-			if err != nil {
-				return nil, err
-			}
+			dir := f.ConfigDir
 			timeout := credstore.TimeoutNonInteractive
 			if f.IO.CanPrompt() {
 				timeout = credstore.TimeoutInteractive
@@ -135,9 +190,20 @@ func setupAuth(f *cmdutil.Factory, flags *globalFlags) {
 	}
 	if f.NewAPIClient == nil {
 		f.NewAPIClient = func(tokens api.TokenSource) (api.Client, error) {
-			return api.New(api.Options{BaseURL: f.APIURL, Tokens: tokens, Logger: f.Log})
+			hc, err := f.HTTPClient()
+			if err != nil {
+				return nil, err
+			}
+			return api.New(api.Options{BaseURL: f.APIURL, Tokens: tokens, Logger: f.Log, HTTPClient: hc})
 		}
 	}
+}
+
+func caSource(src config.Source) string {
+	if src == config.SourceEnv {
+		return config.EnvCABundle
+	}
+	return "ca_bundle in the config file"
 }
 
 // Execute runs the CLI with args and returns the process exit code. It is

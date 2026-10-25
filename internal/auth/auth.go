@@ -17,8 +17,8 @@ import (
 // in CI.
 const EnvToken = "DEVLYFT_API_TOKEN" //nolint:gosec // a variable name, not a credential
 
-// DefaultAccount is the account name credentials are stored under until
-// contexts (devlyft/devlyft#244) name accounts.
+// DefaultAccount is the account name credentials are stored under when the
+// active context does not name one.
 const DefaultAccount = "default"
 
 // Source says where a credential came from.
@@ -48,6 +48,15 @@ type Resolver struct {
 	// Store opens the credential store. It is not called when
 	// DEVLYFT_API_TOKEN is set, so the keyring is never touched then.
 	Store func() (credstore.Store, error)
+	// Account selects the stored credential; empty means DefaultAccount.
+	Account string
+}
+
+func (r *Resolver) account() string {
+	if r.Account != "" {
+		return r.Account
+	}
+	return DefaultAccount
 }
 
 // Resolve returns the credential for host: DEVLYFT_API_TOKEN, then the
@@ -60,7 +69,7 @@ func (r *Resolver) Resolve(ctx context.Context, host string) (*Resolved, error) 
 	if err != nil {
 		return nil, err
 	}
-	c, err := store.Get(ctx, host, DefaultAccount)
+	c, err := store.Get(ctx, host, r.account())
 	if errors.Is(err, credstore.ErrNotFound) {
 		return nil, NotLoggedIn(host)
 	}

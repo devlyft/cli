@@ -1,0 +1,68 @@
+$ devlyft auth status
+--- exit 4
+--- stdout
+--- stderr
+Error: context "gone" does not exist
+Hint: current_context in $CONFIG_DIR/config.yaml names a missing context; run `devlyft config set current_context ""` or `devlyft context use NAME`.
+
+$ devlyft context show
+--- exit 4
+--- stdout
+--- stderr
+Error: context "gone" does not exist
+Hint: current_context in $CONFIG_DIR/config.yaml names a missing context; run `devlyft config set current_context ""` or `devlyft context use NAME`.
+
+$ devlyft config set current_context 
+--- exit 0
+--- stdout
+current_context	
+--- stderr
+
+$ devlyft context show
+--- exit 0
+--- stdout
+context		unset
+api_url	https://api.devlyft.io	default
+ca_bundle		unset
+account		unset
+org		unset
+project		unset
+environment		unset
+location		unset
+--- stderr
+
+$ devlyft auth status --context nope
+--- exit 4
+--- stdout
+--- stderr
+Error: context "nope" does not exist
+Hint: Run `devlyft context list` to see contexts, or `devlyft context use nope` to create it.
+
+$ devlyft auth status
+--- exit 4
+--- stdout
+--- stderr
+Error: context "nope" does not exist
+Hint: Run `devlyft context list` to see contexts, or `devlyft context use nope` to create it.
+
+$ devlyft auth status
+--- exit 2
+--- stdout
+--- stderr
+Error: invalid API URL "http://api.example.com": must use https (from DEVLYFT_API_URL)
+Hint: Run 'devlyft auth status --help' for usage.
+
+$ devlyft auth status --api-url not a url
+--- exit 2
+--- stdout
+--- stderr
+Error: invalid API URL "not a url": must be an absolute https URL
+Hint: Run 'devlyft auth status --help' for usage.
+
+$ devlyft context list
+--- exit 1
+--- stdout
+--- stderr
+Error: invalid config file $CONFIG_DIR/config.yaml: yaml: line 1: did not find expected ',' or ']'
+Hint: Fix or remove the file.
+

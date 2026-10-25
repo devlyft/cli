@@ -4,14 +4,17 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/devlyft/cli/internal/cmdutil"
 )
 
 // newCompletionCmd replaces Cobra's default completion command (Cobra skips
 // its own when one named "completion" exists) so the help text is ours.
 func newCompletionCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "completion bash|zsh|fish|powershell",
-		Short: "Generate a shell completion script",
+		Use:         "completion bash|zsh|fish|powershell",
+		Annotations: map[string]string{cmdutil.NoConfig: "true"},
+		Short:       "Generate a shell completion script",
 		Long: `Generate a completion script for devlyft for the given shell.
 
 The script is printed to stdout. Load it in your shell's start-up file so

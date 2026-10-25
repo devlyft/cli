@@ -1,0 +1,191 @@
+$ devlyft context list
+--- exit 0
+--- stdout
+--- stderr
+
+$ devlyft context use prod --org acme --project web --environment production --account work
+--- exit 0
+--- stdout
+*	prod	work	acme	web	production	
+--- stderr
+Created and switched to context "prod".
+
+$ devlyft context use staging --org acme-staging --location eu-west-1
+--- exit 0
+--- stdout
+*	staging		acme-staging			eu-west-1
+--- stderr
+Created and switched to context "staging".
+
+$ devlyft context list
+--- exit 0
+--- stdout
+	prod	work	acme	web	production	
+*	staging		acme-staging			eu-west-1
+--- stderr
+
+$ devlyft context show
+--- exit 0
+--- stdout
+context	staging	config
+api_url	https://api.devlyft.io	default
+ca_bundle		unset
+account		unset
+org	acme-staging	context
+project		unset
+environment		unset
+location	eu-west-1	context
+--- stderr
+
+$ devlyft context show --context prod --project api
+--- exit 0
+--- stdout
+context	prod	flag
+api_url	https://api.devlyft.io	default
+ca_bundle		unset
+account	work	context
+org	acme	context
+project	api	flag
+environment	production	context
+location		unset
+--- stderr
+
+$ devlyft context show prod
+--- exit 0
+--- stdout
+	prod	work	acme	web	production	
+--- stderr
+
+$ devlyft context use prod --project 
+--- exit 0
+--- stdout
+*	prod	work	acme		production	
+--- stderr
+Switched to context "prod".
+
+$ devlyft context show prod --format json
+--- exit 0
+--- stdout
+{
+  "name": "prod",
+  "current": true,
+  "account": "work",
+  "org": "acme",
+  "env": "production"
+}
+--- stderr
+
+$ devlyft context show nope
+--- exit 4
+--- stdout
+--- stderr
+Error: context "nope" does not exist
+Hint: Run `devlyft context list` to see contexts, or `devlyft context use nope` to create it.
+
+$ devlyft context delete staging
+--- exit 2
+--- stdout
+--- stderr
+Error: Delete context "staging": pass --yes to confirm when not running interactively
+Hint: Run 'devlyft context delete --help' for usage.
+
+$ devlyft context delete staging --yes
+--- exit 0
+--- stdout
+staging	true
+--- stderr
+Deleted context "staging".
+
+$ devlyft context delete nope --yes
+--- exit 4
+--- stdout
+--- stderr
+Error: context "nope" does not exist
+Hint: Run `devlyft context list` to see contexts, or `devlyft context use nope` to create it.
+
+$ devlyft context use 
+--- exit 2
+--- stdout
+--- stderr
+Error: context name must not be empty
+Hint: Run 'devlyft context use --help' for usage.
+
+$ devlyft config list
+--- exit 0
+--- stdout
+api_url	
+ca_bundle	
+current_context	prod
+path	$CONFIG_DIR/config.yaml
+--- stderr
+
+$ devlyft config set api_url https://api.example.com/
+--- exit 0
+--- stdout
+api_url	https://api.example.com
+--- stderr
+
+$ devlyft config get api_url
+--- exit 0
+--- stdout
+https://api.example.com
+--- stderr
+
+$ devlyft config set api_url http://insecure.example.com
+--- exit 2
+--- stdout
+--- stderr
+Error: invalid API URL "http://insecure.example.com": must use https
+Hint: Run 'devlyft config set --help' for usage.
+
+$ devlyft config set current_context nope
+--- exit 4
+--- stdout
+--- stderr
+Error: context "nope" does not exist
+Hint: Run `devlyft context list` to see contexts, or `devlyft context use nope` to create it.
+
+$ devlyft config set colour on
+--- exit 2
+--- stdout
+--- stderr
+Error: unknown config key "colour": must be one of api_url, ca_bundle, current_context
+Hint: Run 'devlyft config set --help' for usage.
+
+$ devlyft config get colour
+--- exit 2
+--- stdout
+--- stderr
+Error: unknown config key "colour": must be one of api_url, ca_bundle, current_context
+Hint: Run 'devlyft config get --help' for usage.
+
+$ devlyft config get current_context --format json
+--- exit 0
+--- stdout
+{
+  "key": "current_context",
+  "value": "prod"
+}
+--- stderr
+
+$ devlyft context show
+--- exit 0
+--- stdout
+context	prod	config
+api_url	https://api.example.com	config
+ca_bundle		unset
+account	work	context
+org	acme	context
+project		unset
+environment	production	context
+location		unset
+--- stderr
+
+--- config.yaml
+api_url: https://api.example.com
+current_context: prod
+contexts:
+  prod:
+    account: work
+    org: acme
+    env: production

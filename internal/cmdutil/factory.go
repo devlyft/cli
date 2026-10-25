@@ -6,6 +6,7 @@ package cmdutil
 import (
 	"errors"
 	"log/slog"
+	"net/http"
 
 	"github.com/devlyft/cli/internal/api"
 	"github.com/devlyft/cli/internal/auth"
@@ -22,13 +23,26 @@ type Factory struct {
 	Printer *output.Printer
 	Log     *slog.Logger
 
-	// APIURL is the API origin from --api-url, DEVLYFT_API_URL or the
-	// default.
+	// ConfigDir holds config.yaml and credentials.json; empty means
+	// config.Dir().
+	ConfigDir string
+	// Config is the loaded config file. Nil for commands that do not
+	// read it (version, completion).
+	Config *config.File
+	// Scope is the resolved API URL, context and defaults. Nil for
+	// commands that do not need it (version, completion, config, context).
+	Scope *config.Scope
+
+	// APIURL is the API origin from the scope.
 	APIURL string
 	// Getenv reads the environment.
 	Getenv func(string) string
 	// Credentials opens the credential store.
 	Credentials func() (credstore.Store, error)
+	// HTTPClient returns the client every network call uses, with the
+	// proxy and CA bundle settings applied. Use it for the API and for
+	// anything else that dials out, such as the log stream.
+	HTTPClient func() (*http.Client, error)
 	// NewAPIClient returns an API client for APIURL using tokens.
 	NewAPIClient func(tokens api.TokenSource) (api.Client, error)
 
@@ -40,9 +54,18 @@ type Factory struct {
 // Host is the API host credentials are stored under.
 func (f *Factory) Host() string { return config.Host(f.APIURL) }
 
+// Account is the account credentials are stored under: the active
+// context's account, or auth.DefaultAccount.
+func (f *Factory) Account() string {
+	if f.Scope != nil && f.Scope.Account.Value != "" {
+		return f.Scope.Account.Value
+	}
+	return auth.DefaultAccount
+}
+
 // Resolver finds the credential for a command.
 func (f *Factory) Resolver() *auth.Resolver {
-	return &auth.Resolver{Getenv: f.Getenv, Store: f.Credentials}
+	return &auth.Resolver{Getenv: f.Getenv, Store: f.Credentials, Account: f.Account()}
 }
 
 // APIClient returns an API client authenticated with the resolved
@@ -68,3 +91,12 @@ func (f *Factory) Client() (api.Client, error) {
 	}
 	return f.APIClient()
 }
+
+// Annotations on commands that change how the root sets them up.
+const (
+	// NoConfig skips loading the config file and resolving the scope.
+	NoConfig = "devlyft/no-config"
+	// NoScope loads the config file but does not resolve the scope, so
+	// that config and context commands can repair a broken setting.
+	NoScope = "devlyft/no-scope"
+)

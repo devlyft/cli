@@ -15,6 +15,8 @@ package clitest
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -44,6 +46,11 @@ type Options struct {
 	Commands func(*cmdutil.Factory) []*cobra.Command
 	// Context defaults to t.Context().
 	Context context.Context
+	// ConfigDir holds config.yaml; empty uses a new temporary directory,
+	// so tests never read the developer's own config.
+	ConfigDir string
+	// Config, if set, is written to config.yaml before the run.
+	Config string
 }
 
 // Result is what an invocation produced.
@@ -52,10 +59,12 @@ type Result struct {
 	Exit   int
 	Stdout string
 	Stderr string
+	// ConfigDir is the config directory the run used.
+	ConfigDir string
 }
 
 // Transcript formats the result for golden files.
-func (r Result) Transcript() string {
+func (r *Result) Transcript() string {
 	return fmt.Sprintf("$ devlyft %s\n--- exit %d\n--- stdout\n%s--- stderr\n%s",
 		strings.Join(r.Args, " "), r.Exit, r.Stdout, r.Stderr)
 }
@@ -71,7 +80,16 @@ func Run(tb testing.TB, opts *Options) Result {
 	ios.SetTTY(opts.TTY)
 	in.WriteString(opts.Stdin)
 
-	f := &cmdutil.Factory{IO: ios, Credentials: tempCredentials(tb)}
+	dir := opts.ConfigDir
+	if dir == "" {
+		dir = tb.TempDir()
+	}
+	if opts.Config != "" {
+		if err := os.WriteFile(filepath.Join(dir, "config.yaml"), []byte(opts.Config), 0o600); err != nil {
+			tb.Fatal(err)
+		}
+	}
+	f := &cmdutil.Factory{IO: ios, ConfigDir: dir, Credentials: tempCredentials(tb)}
 	if opts.API != nil {
 		client := opts.API
 		f.API = func() (api.Client, error) { return client, nil }
@@ -86,7 +104,7 @@ func Run(tb testing.TB, opts *Options) Result {
 		ctx = tb.Context()
 	}
 	code := cli.ExecuteWith(ctx, f, opts.Args, extra...)
-	return Result{Args: opts.Args, Exit: code, Stdout: stdout.String(), Stderr: stderr.String()}
+	return Result{Args: opts.Args, Exit: code, Stdout: stdout.String(), Stderr: stderr.String(), ConfigDir: dir}
 }
 
 // tempCredentials returns an empty file-only credential store in a
