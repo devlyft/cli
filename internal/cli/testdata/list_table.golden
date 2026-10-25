@@ -1,0 +1,7 @@
+$ devlyft widgets --format table
+--- exit 0
+--- stdout
+ID     NAME
+0b1c   web
+7f2e   worker with tab
+--- stderr

@@ -1,0 +1,6 @@
+$ devlyft widgets --bogus
+--- exit 2
+--- stdout
+--- stderr
+Error: unknown flag: --bogus
+Hint: Run 'devlyft widgets --help' for usage.

@@ -1,0 +1,6 @@
+$ devlyft fail --code timeout
+--- exit 6
+--- stdout
+--- stderr
+Error: failed with timeout
+Hint: try again

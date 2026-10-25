@@ -1,0 +1,6 @@
+$ devlyft fail --code placement_pending
+--- exit 7
+--- stdout
+--- stderr
+Error: failed with placement_pending
+Hint: try again

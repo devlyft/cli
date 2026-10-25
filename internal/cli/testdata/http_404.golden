@@ -1,0 +1,6 @@
+$ devlyft fail --status 404 --request-id req-123
+--- exit 4
+--- stdout
+--- stderr
+Error: server said no
+Request ID: req-123

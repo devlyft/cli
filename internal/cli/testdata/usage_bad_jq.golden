@@ -1,0 +1,5 @@
+$ devlyft widgets --jq .[
+--- exit 2
+--- stdout
+--- stderr
+{"code":"invalid_argument","message":"invalid --jq expression: unexpected EOF","http_status":null,"request_id":null,"details":null,"retryable":false}

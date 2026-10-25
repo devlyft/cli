@@ -1,0 +1,5 @@
+$ devlyft fail --code auth_required --format json
+--- exit 3
+--- stdout
+--- stderr
+{"code":"auth_required","message":"failed with auth_required","http_status":null,"request_id":null,"details":{"deploy":"web"},"retryable":false}

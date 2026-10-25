@@ -1,0 +1,5 @@
+$ devlyft widgets -q --format json
+--- exit 2
+--- stdout
+--- stderr
+{"code":"invalid_argument","message":"--quiet cannot be combined with --format or --jq","http_status":null,"request_id":null,"details":null,"retryable":false}

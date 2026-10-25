@@ -1,0 +1,6 @@
+$ devlyft nope
+--- exit 2
+--- stdout
+--- stderr
+Error: unknown command "nope" for "devlyft"
+Hint: Run 'devlyft --help' for usage.

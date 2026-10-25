@@ -1,0 +1,7 @@
+$ devlyft widgets
+--- exit 0
+--- stdout
+[1mID     NAME[0m
+0b1c   web
+7f2e   worker with tab
+--- stderr

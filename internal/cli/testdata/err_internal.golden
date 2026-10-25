@@ -1,0 +1,6 @@
+$ devlyft fail --code internal
+--- exit 1
+--- stdout
+--- stderr
+Error: failed with internal
+Hint: try again

@@ -1,0 +1,10 @@
+$ devlyft widgets --format yaml
+--- exit 0
+--- stdout
+- id: 0b1c
+  labels:
+    tier: frontend
+  name: web
+- id: 7f2e
+  name: "worker\twith tab"
+--- stderr

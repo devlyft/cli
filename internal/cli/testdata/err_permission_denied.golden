@@ -1,0 +1,6 @@
+$ devlyft fail --code permission_denied
+--- exit 3
+--- stdout
+--- stderr
+Error: failed with permission_denied
+Hint: try again

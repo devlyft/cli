@@ -1,0 +1,6 @@
+$ devlyft widgets --verbosity loud
+--- exit 2
+--- stdout
+--- stderr
+Error: invalid --verbosity "loud": must be one of debug, info, warning, error, none
+Hint: Run 'devlyft widgets --help' for usage.

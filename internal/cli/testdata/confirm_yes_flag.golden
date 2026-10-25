@@ -1,0 +1,5 @@
+$ devlyft delete --yes
+--- exit 0
+--- stdout
+deleted
+--- stderr

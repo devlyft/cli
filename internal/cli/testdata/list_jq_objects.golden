@@ -1,0 +1,6 @@
+$ devlyft widgets --format json --jq .[] | {id}
+--- exit 0
+--- stdout
+{"id":"0b1c"}
+{"id":"7f2e"}
+--- stderr

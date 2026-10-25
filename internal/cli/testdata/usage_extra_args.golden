@@ -1,0 +1,6 @@
+$ devlyft fail extra
+--- exit 2
+--- stdout
+--- stderr
+Error: unknown command "extra" for "devlyft fail"
+Hint: Run 'devlyft fail --help' for usage.

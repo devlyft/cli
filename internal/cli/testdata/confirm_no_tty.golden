@@ -1,0 +1,6 @@
+$ devlyft delete
+--- exit 2
+--- stdout
+--- stderr
+Error: Delete widget web: pass --yes to confirm when not running interactively
+Hint: Run 'devlyft delete --help' for usage.

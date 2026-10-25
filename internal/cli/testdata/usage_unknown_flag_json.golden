@@ -1,0 +1,5 @@
+$ devlyft widgets --bogus --format json
+--- exit 2
+--- stdout
+--- stderr
+{"code":"invalid_argument","message":"unknown flag: --bogus","http_status":null,"request_id":null,"details":null,"retryable":false}

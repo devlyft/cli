@@ -1,0 +1,6 @@
+$ devlyft widgets --format=tsv
+--- exit 0
+--- stdout
+0b1c	web
+7f2e	worker with tab
+--- stderr

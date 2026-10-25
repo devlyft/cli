@@ -1,0 +1,5 @@
+$ devlyft delete
+--- exit 0
+--- stdout
+--- stderr
+Delete widget web? [y/N] 

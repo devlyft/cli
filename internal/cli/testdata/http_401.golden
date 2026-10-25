@@ -1,0 +1,5 @@
+$ devlyft fail --status 401
+--- exit 3
+--- stdout
+--- stderr
+Error: server said no

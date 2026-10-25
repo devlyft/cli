@@ -1,0 +1,6 @@
+$ devlyft fail --code invalid_argument
+--- exit 1
+--- stdout
+--- stderr
+Error: failed with invalid_argument
+Hint: try again

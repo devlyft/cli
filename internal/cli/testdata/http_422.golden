@@ -1,0 +1,5 @@
+$ devlyft fail --status 422
+--- exit 1
+--- stdout
+--- stderr
+Error: server said no

@@ -1,0 +1,5 @@
+$ devlyft fail --code deadline
+--- exit 6
+--- stdout
+--- stderr
+Error: waiting: context deadline exceeded
