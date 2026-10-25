@@ -105,3 +105,16 @@ jobs:
             exit 1
           fi
           test ! -e "$RUNNER_TEMP/bad-bin/devlyft"
+      - name: deb package installs
+        run: |
+          version=$(jq -r .version dist/metadata.json)
+          sudo dpkg -i "dist/devlyft_${version}_linux_amd64.deb"
+          devlyft version | grep -F "devlyft $version"
+          sudo dpkg -r devlyft
+      - name: rpm package installs
+        run: |
+          version=$(jq -r .version dist/metadata.json)
+          docker run --rm -v "$PWD/dist:/dist:ro" fedora:latest sh -c \
+            "rpm -i /dist/devlyft_${version}_linux_amd64.rpm && devlyft version | grep -F 'devlyft $version'"
+      - name: Scoop manifest is valid JSON with both architectures
+        run: jq -e '.architecture["64bit"].hash and .architecture.arm64.hash' dist/scoop/bucket/devlyft.json

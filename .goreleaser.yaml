@@ -97,6 +97,56 @@ homebrew_casks:
             run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/devlyft"]
           end
 
+# Linux packages, attached to the GitHub release and covered by the signed
+# checksum file.
+nfpms:
+  - id: devlyft
+    ids: [devlyft]
+    package_name: devlyft
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [deb, rpm]
+    vendor: DevLyft
+    homepage: https://github.com/devlyft/cli
+    maintainer: DevLyft <noreply@devlyft.io>
+    description: The official command-line interface for DevLyft.
+    license: Apache-2.0
+    section: devel
+    bindir: /usr/bin
+    # Reproducible packages: timestamps come from the commit, not the clock.
+    mtime: "{{ .CommitDate }}"
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/devlyft/LICENSE
+        file_info:
+          mode: 0644
+      - src: README.md
+        dst: /usr/share/doc/devlyft/README.md
+        file_info:
+          mode: 0644
+    rpm:
+      group: Development/Tools
+
+# Scoop: `scoop bucket add devlyft https://github.com/devlyft/scoop-bucket`
+# then `scoop install devlyft`. The manifest is pushed with a token scoped to
+# that repository only; without the token the upload is skipped instead of
+# failing the release.
+scoops:
+  - name: devlyft
+    ids: [devlyft]
+    description: The official command-line interface for DevLyft.
+    homepage: https://github.com/devlyft/cli
+    license: Apache-2.0
+    repository:
+      owner: devlyft
+      name: scoop-bucket
+      token: '{{ envOrDefault "SCOOP_BUCKET_GITHUB_TOKEN" "" }}'
+    directory: bucket
+    commit_author:
+      name: devlyft-release-bot
+      email: noreply@devlyft.io
+    commit_msg_template: "Scoop update for {{ .ProjectName }} version {{ .Tag }}"
+    skip_upload: '{{ if not (envOrDefault "SCOOP_BUCKET_GITHUB_TOKEN" "") }}true{{ end }}'
+
 # release-please writes the changelog and the release notes.
 changelog:
   disable: true
