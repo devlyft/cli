@@ -1,0 +1,6 @@
+$ devlyft auth login --with-token
+--- exit 2
+--- stdout
+--- stderr
+[1;31mError:[0m --with-token reads the token from standard input, which is a terminal
+Hint: Pipe it in: devlyft auth login --with-token < token.txt

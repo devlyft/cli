@@ -1,0 +1,5 @@
+$ devlyft auth list --format json
+--- exit 0
+--- stdout
+[]
+--- stderr

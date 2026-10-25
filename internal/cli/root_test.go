@@ -110,6 +110,7 @@ type golden struct {
 func TestGolden(t *testing.T) {
 	t.Setenv("NO_COLOR", "")
 	t.Setenv("DEVLYFT_DEBUG", "")
+	t.Setenv("DEVLYFT_API_TOKEN", "")
 
 	cancelled := func(ctx context.Context) context.Context {
 		ctx, cancel := context.WithCancel(ctx)

@@ -17,6 +17,8 @@ func TestString(t *testing.T) {
 		{"bearer header value", "Authorization: Bearer abc.def-123", "Authorization: Bearer [REDACTED]"},
 		{"websocket subprotocol", "Sec-WebSocket-Protocol: bearer, abc123", "Sec-WebSocket-Protocol: bearer, [REDACTED]"},
 		{"bare jwt", "token is " + jwt + " ok", "token is [REDACTED] ok"},
+		{"bare api token", "read dvl_AbC-123_xyzXYZ0987654321 from stdin", "read [REDACTED] from stdin"},
+		{"short dvl_ word is not a token", "dvl_x", "dvl_x"},
 		{"json access token", `{"access_token":"abc","expires_in":900}`, `{"access_token":"[REDACTED]","expires_in":900}`},
 		{"json refresh token with spaces", `{"refresh_token" : "a\"b"}`, `{"refresh_token" : "[REDACTED]"}`},
 		{"json secret value", `{"key":"DB_URL","value":"postgres://u:p@h/db"}`, `{"key":"DB_URL","value":"[REDACTED]"}`},

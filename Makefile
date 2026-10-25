@@ -33,7 +33,7 @@ tidy: ## Tidy go.mod and go.sum
 	go mod tidy
 
 generate: ## Regenerate API clients and mocks from internal/api/specs
-	go generate ./internal/api/...
+	go generate ./internal/api/... ./internal/auth/...
 
 vendor-specs: ## Re-vendor pruned specs from the platform repo (needs access; REF=<sha>)
 	hack/vendor-specs.sh $(REF)

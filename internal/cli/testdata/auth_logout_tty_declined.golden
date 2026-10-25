@@ -1,0 +1,5 @@
+$ devlyft auth logout
+--- exit 0
+--- stdout
+--- stderr
+Log out of api.devlyft.io? [y/N] 

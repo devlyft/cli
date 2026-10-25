@@ -1,0 +1,6 @@
+$ devlyft auth token
+--- exit 3
+--- stdout
+--- stderr
+Error: not logged in to api.devlyft.io
+Hint: Run `devlyft auth login --with-token`, or set DEVLYFT_API_TOKEN.

@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/devlyft/cli/internal/clierr"
-	"github.com/devlyft/cli/internal/cmdutil"
 	"github.com/devlyft/cli/internal/exitcode"
+	"github.com/devlyft/cli/internal/logging"
 )
 
 const (
@@ -410,7 +410,7 @@ func TestDebugLogRedactsSecrets(t *testing.T) {
 	srv := httptest.NewServer(s)
 	defer srv.Close()
 	var buf bytes.Buffer
-	c, _ := newTestClient(t, srv, cmdutil.NewLogger(&buf, slog.LevelDebug, true))
+	c, _ := newTestClient(t, srv, logging.NewLogger(&buf, slog.LevelDebug, true))
 
 	if err := c.SetSecret(t.Context(), testProject, testEnv, "DB_URL", "postgres://u:hunter2@db/x"); err != nil {
 		t.Fatal(err)
@@ -435,7 +435,7 @@ func TestNoBodiesReadWhenNotDebugging(t *testing.T) {
 	srv := httptest.NewServer(s)
 	defer srv.Close()
 	var buf bytes.Buffer
-	c, _ := newTestClient(t, srv, cmdutil.NewLogger(&buf, slog.LevelWarn, true))
+	c, _ := newTestClient(t, srv, logging.NewLogger(&buf, slog.LevelWarn, true))
 
 	if err := getDeploy(t.Context(), c); err != nil {
 		t.Fatal(err)

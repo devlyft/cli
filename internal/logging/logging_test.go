@@ -1,4 +1,4 @@
-package cmdutil
+package logging
 
 import (
 	"bytes"

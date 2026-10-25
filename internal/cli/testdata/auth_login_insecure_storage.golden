@@ -1,0 +1,5 @@
+$ devlyft auth login --with-token --insecure-storage
+--- exit 0
+--- stdout
+--- stderr
+Logged in to api.devlyft.io (organization acme). Token stored in credentials.json.

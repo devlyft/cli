@@ -61,6 +61,9 @@ func (s *IOStreams) DisableColor() { s.colorOff = true }
 // IsStdoutTTY reports whether stdout is a terminal.
 func (s *IOStreams) IsStdoutTTY() bool { return s.stdoutTTY }
 
+// IsStdinTTY reports whether stdin is a terminal.
+func (s *IOStreams) IsStdinTTY() bool { return s.stdinTTY }
+
 // IsStderrTTY reports whether stderr is a terminal.
 func (s *IOStreams) IsStderrTTY() bool { return s.stderrTTY }
 

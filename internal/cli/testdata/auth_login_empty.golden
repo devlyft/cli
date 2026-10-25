@@ -1,0 +1,6 @@
+$ devlyft auth login --with-token
+--- exit 2
+--- stdout
+--- stderr
+Error: no token on standard input
+Hint: Run 'devlyft auth login --help' for usage.

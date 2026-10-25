@@ -1,0 +1,6 @@
+$ devlyft auth status --format table
+--- exit 0
+--- stdout
+HOST             ACCOUNT   SOURCE    ORGANIZATIONS
+api.devlyft.io   default   keyring   acme
+--- stderr

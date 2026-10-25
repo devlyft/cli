@@ -1,0 +1,16 @@
+$ devlyft auth login --with-token --format json
+--- exit 0
+--- stdout
+{
+  "host": "api.devlyft.io",
+  "account": "default",
+  "source": "keyring",
+  "organizations": [
+    {
+      "id": "0b1c2d3e-0000-4000-8000-000000000001",
+      "slug": "acme",
+      "name": "Acme"
+    }
+  ]
+}
+--- stderr

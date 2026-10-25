@@ -1,0 +1,5 @@
+$ devlyft auth ls -q
+--- exit 0
+--- stdout
+api.devlyft.io
+--- stderr

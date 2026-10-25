@@ -1,0 +1,8 @@
+$ devlyft auth list --format table
+--- exit 0
+--- stdout
+HOST                      ACCOUNT   SOURCE    ORGANIZATIONS   CREATED
+api.devlyft.io                      env                       
+api.devlyft.io            default   keyring   acme            2026-10-25T12:00:00Z
+api.staging.example.com   default   file                      2026-10-25T12:00:00Z
+--- stderr
