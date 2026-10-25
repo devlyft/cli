@@ -13,9 +13,30 @@ Releases are automated. Nobody tags by hand.
    - write `devlyft_<version>_checksums.txt` covering every archive and SBOM;
    - sign the checksum file with [cosign](https://docs.sigstore.dev/) keyless signing, using the workflow's GitHub OIDC identity (no stored keys), producing `.sig`, `.pem` and `.sigstore.json`;
    - attach everything to the release.
-5. The workflow then records a GitHub build-provenance attestation for the archives and the checksum file.
+5. goreleaser also generates a Homebrew cask and pushes it to [devlyft/homebrew-tap](https://github.com/devlyft/homebrew-tap) (`Casks/devlyft.rb`), so `brew install devlyft/tap/devlyft` picks up the release. The push uses the `HOMEBREW_TAP_GITHUB_TOKEN` secret; when that secret is not set, the cask is built but not pushed and the release still succeeds. The cask installs bash, zsh and fish completions by running `devlyft completion <shell>`, and on macOS clears the quarantine attribute because the binary is not notarized.
+6. The workflow then records a GitHub build-provenance attestation for the archives and the checksum file.
 
-Every pull request also runs `checks / release-snapshot`, which builds all targets with the same config but skips signing, SBOMs and publishing. Run the same thing locally with `make snapshot`; the output lands in `dist/`.
+Every pull request also runs `checks / release-snapshot`, which builds all targets with the same config but skips signing, SBOMs and publishing, then runs `install.sh` against the snapshot (and checks it rejects a tampered archive). Run the same thing locally with `make snapshot`; the output lands in `dist/`.
+
+### Setting up the Homebrew tap
+
+One-off, before the first release that should reach Homebrew:
+
+1. Create the public repository `devlyft/homebrew-tap` with a README and a `Casks/` directory. Homebrew maps `devlyft/tap` to `github.com/devlyft/homebrew-tap`.
+2. Create a credential that can write only to that repository: a fine-grained personal access token owned by a bot account (or a GitHub App installation token) with **Contents: read and write** on `devlyft/homebrew-tap` and nothing else.
+3. Store it as the `HOMEBREW_TAP_GITHUB_TOKEN` secret in `devlyft/cli`, ideally in a protected environment used only by the release workflow.
+
+## The install script
+
+`install.sh` (served from `main` via raw.githubusercontent.com) installs on Linux and macOS:
+
+1. Works out the OS and architecture, and the version: `DEVLYFT_VERSION`, or the latest release.
+2. Downloads the archive and `devlyft_<version>_checksums.txt`.
+3. If cosign is installed, downloads `devlyft_<version>_checksums.txt.sigstore.json` and verifies it with the same identity and issuer as below; any failure, including a missing bundle, aborts. Without cosign it warns and continues, unless `DEVLYFT_REQUIRE_SIGNATURE=1`, in which case it aborts.
+4. Checks the archive's sha256 against the checksum file and aborts on a mismatch.
+5. Installs `devlyft` into `DEVLYFT_INSTALL_DIR`, `/usr/local/bin` if writable, or `~/.local/bin`. It never calls sudo.
+
+`DEVLYFT_DOWNLOAD_BASE` points it at another directory of release assets (a mirror, or `file://$PWD/dist` for testing) and requires `DEVLYFT_VERSION`.
 
 ## Verifying a download
 
@@ -54,4 +75,5 @@ To cut 1.0, merge a commit containing `Release-As: 1.0.0` in its body; release-p
 ## Known gaps
 
 - macOS binaries are not notarized and Windows binaries are not code-signed, so browser downloads trigger Gatekeeper and SmartScreen warnings. Installing through Homebrew or the install script avoids this.
-- Homebrew, Scoop, deb and rpm channels are tracked separately (devlyft/devlyft#258, devlyft/devlyft#260).
+- Scoop, deb and rpm channels are tracked separately (devlyft/devlyft#260).
+- The install script supports Linux and macOS only; Windows users install with Scoop or the zip archive.
