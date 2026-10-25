@@ -17,13 +17,27 @@ curl -fsSL https://raw.githubusercontent.com/devlyft/cli/main/install.sh | sh
 
 Set `DEVLYFT_VERSION` to pin a version, `DEVLYFT_INSTALL_DIR` to choose where the binary goes (default `/usr/local/bin` if writable, otherwise `~/.local/bin`), and `DEVLYFT_REQUIRE_SIGNATURE=1` to refuse to install without a verified signature.
 
+**Scoop** (Windows):
+
+```powershell
+scoop bucket add devlyft https://github.com/devlyft/scoop-bucket
+scoop install devlyft
+```
+
+**Debian, Ubuntu, Fedora, RHEL**: download the `.deb` or `.rpm` for your architecture from [Releases](https://github.com/devlyft/cli/releases), then:
+
+```sh
+sudo dpkg -i devlyft_<version>_linux_amd64.deb   # Debian, Ubuntu
+sudo rpm -i devlyft_<version>_linux_amd64.rpm    # Fedora, RHEL
+```
+
 **Go**:
 
 ```sh
 go install github.com/devlyft/cli/cmd/devlyft@latest
 ```
 
-Or download an archive from [Releases](https://github.com/devlyft/cli/releases); see [docs/releasing.md](docs/releasing.md#verifying-a-download) to verify it.
+Or download an archive or package from [Releases](https://github.com/devlyft/cli/releases). Every release file is listed in a cosign-signed checksum file; see [docs/releasing.md](docs/releasing.md#verifying-a-download) to verify a download.
 
 ## Development
 
