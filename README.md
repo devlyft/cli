@@ -73,9 +73,10 @@ Requires Go 1.26 or later.
 ```sh
 make build        # builds bin/devlyft
 make test         # unit tests with -race
+make cover-check  # tests plus the 80% coverage floor on internal/
 make lint         # golangci-lint
 make vuln         # govulncheck
-make check        # everything CI runs
+make check        # everything CI runs (see docs/testing.md)
 ```
 
 Layout:

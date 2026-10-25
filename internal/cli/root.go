@@ -150,6 +150,15 @@ func Execute(ctx context.Context, ios *iostreams.IOStreams, args []string) int {
 	return code
 }
 
+// ExecuteWith runs the CLI in-process with a caller-supplied factory and
+// any extra commands attached to the root, without the update check. Tests
+// use it through internal/testutil/clitest.
+func ExecuteWith(ctx context.Context, f *cmdutil.Factory, args []string, extra ...*cobra.Command) int {
+	root := NewRootCmd(f)
+	root.AddCommand(extra...)
+	return execute(ctx, f, root, args)
+}
+
 func execute(ctx context.Context, f *cmdutil.Factory, root *cobra.Command, args []string) int {
 	ios := f.IO
 	root.SetArgs(args)

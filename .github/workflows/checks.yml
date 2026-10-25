@@ -50,7 +50,12 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: go test -race ./...
+      - if: matrix.os != 'ubuntu-latest'
+        run: go test -race ./...
+      # On Linux the same tests run with coverage, and fail below the floor.
+      - name: Tests with coverage floor
+        if: matrix.os == 'ubuntu-latest'
+        run: make cover-check
       - run: go build -trimpath -o "$BIN" ./cmd/devlyft
       - run: '"./$BIN" version'
       - name: Completion scripts generate
@@ -66,10 +71,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          go-package: ./...
+      # The Makefile scopes the scan to shipped code (see the vuln target).
+      - run: make vuln
 
   # Builds every release target without signing or publishing, so changes to
   # .goreleaser.yaml are caught before a tag is pushed.

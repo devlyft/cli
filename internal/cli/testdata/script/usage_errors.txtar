@@ -1,0 +1,30 @@
+# Mistakes caught locally exit 2, print one error and a hint to stderr, and
+# nothing to stdout.
+
+exitcode 2 devlyft nope
+! stdout .
+stderr '^Error: unknown command "nope" for "devlyft"$'
+stderr '^Hint: Run ''devlyft --help'' for usage\.$'
+
+exitcode 2 devlyft version --bogus
+! stdout .
+stderr '^Error: unknown flag: --bogus$'
+
+exitcode 2 devlyft version --format xml
+! stdout .
+stderr 'invalid --format "xml": must be one of table, tsv, json, yaml'
+
+exitcode 2 devlyft version --format yaml --jq .
+stderr '--jq cannot be combined with --format yaml'
+
+exitcode 2 devlyft version --verbosity loud
+stderr 'invalid --verbosity "loud"'
+
+# Under --format json the error is a single JSON object on stderr, even when
+# the flags themselves are wrong.
+exitcode 2 devlyft version --bogus --format json
+! stdout .
+stderr '^\{"code":"invalid_argument","message":"unknown flag: --bogus","http_status":null,"request_id":null,"details":null,"retryable":false\}$'
+
+exitcode 2 devlyft nope --jq .
+stderr '^\{"code":"invalid_argument",'

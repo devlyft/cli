@@ -1,0 +1,6 @@
+$ devlyft projects 0b4e1a3c-6c2f-4d0a-8c51-5f0f1e2d3c4b
+--- exit 4
+--- stdout
+--- stderr
+Error: organization not found
+Request ID: req-9

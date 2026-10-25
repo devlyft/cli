@@ -1,0 +1,48 @@
+name: Smoke
+
+# End-to-end smoke test against the production API, using a dedicated test
+# organization. It needs secrets, so it never runs for pull requests (forks
+# must not reach them): only nightly, by hand, or called from another
+# workflow in this repository (e.g. a release).
+#
+# Secrets live in the protected `smoke` environment (restricted to main,
+# with required reviewers if wanted): DEVLYFT_SMOKE_API_TOKEN (an org API
+# token for the test org) and DEVLYFT_SMOKE_ORG (the test org's UUID). See
+# docs/testing.md.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: smoke
+    if: github.repository == 'devlyft/cli'
+    runs-on: ubuntu-latest
+    environment: smoke
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Smoke test
+        env:
+          DEVLYFT_API_TOKEN: ${{ secrets.DEVLYFT_SMOKE_API_TOKEN }}
+          DEVLYFT_SMOKE_ORG: ${{ secrets.DEVLYFT_SMOKE_ORG }}
+        run: |
+          if [ -z "$DEVLYFT_API_TOKEN" ] || [ -z "$DEVLYFT_SMOKE_ORG" ]; then
+            echo "::error::The smoke environment is missing DEVLYFT_SMOKE_API_TOKEN or DEVLYFT_SMOKE_ORG"
+            exit 1
+          fi
+          go test -tags smoke -count=1 -v ./test/smoke/

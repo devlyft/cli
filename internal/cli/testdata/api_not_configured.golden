@@ -1,0 +1,6 @@
+$ devlyft projects 0b4e1a3c-6c2f-4d0a-8c51-5f0f1e2d3c4b
+--- exit 3
+--- stdout
+--- stderr
+Error: not logged in to api.devlyft.io
+Hint: Run `devlyft auth login --with-token`, or set DEVLYFT_API_TOKEN.
