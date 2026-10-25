@@ -1,0 +1,22 @@
+name: CI
+
+# Runs untrusted code from forks, so: GitHub-hosted runners only, the
+# `pull_request` trigger (never `pull_request_target`), no secrets and a
+# read-only token.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Required status checks are named "checks / <job>" after this job's id.
+  checks:
+    uses: ./.github/workflows/checks.yml
