@@ -1,0 +1,45 @@
+version: "2"
+
+linters:
+  enable:
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - gocheckcompilerdirectives
+    - gocritic
+    - gosec
+    - intrange
+    - misspell
+    - noctx
+    - paralleltest
+    - perfsprint
+    - revive
+    - thelper
+    - tparallel
+    - unconvert
+    - usestdlibvars
+    - usetesting
+  settings:
+    gocritic:
+      enable-all: true
+      disabled-checks:
+        - unnamedResult
+    revive:
+      rules:
+        - name: exported
+        - name: package-comments
+        - name: context-as-argument
+        - name: early-return
+        - name: unused-parameter
+  exclusions:
+    presets:
+      - std-error-handling
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/devlyft/cli
