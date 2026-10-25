@@ -2,6 +2,8 @@ module github.com/devlyft/cli
 
 go 1.26.0
 
+toolchain go1.26.10
+
 require (
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/google/uuid v1.6.0
