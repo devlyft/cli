@@ -1,0 +1,112 @@
+# What the CLI may vendor from the platform's private OpenAPI specs.
+#
+# This repository is public. hack/specprune publishes only the operations
+# listed here and the components they reference, and refuses to write
+# anything while a description matches deny_patterns or a property name
+# matches suspect_fields without being dropped or reviewed. Every change to
+# this file needs review: it decides what becomes public.
+source:
+  repo: devlyft/devlyft
+  ref: bef84e3b430ac77c34dab97cd1c94d976cbdb49d
+
+deny_patterns:
+  - (?i)spiffe|svid
+  # "Internal server error" is fine; naming internal services or hops is not.
+  - (?i)\binternal\s+(?:[a-z]+-api|service|network|hosts?|only|endpoint|identity)|\bthe internal\b
+  - (?i)agones|game ?server|\bfleets?\b
+  - (?i)secrets-api|pods-api|nodes-api|fleets-api|infra-api|identity-api|billing-api
+  - (?i)cluster\.local|\.svc\b|vault|kubernetes|\bk8s\b|helm
+  - (?i)sidecar|webhook|bazel|gcp|gke
+
+suspect_fields:
+  - (?i)cluster|node|fleet|spiffe|svid|vault|internal|host|ip|billing|stripe|lease|tenant
+
+services:
+  deploys:
+    path: cmd/apps/deploys-api/api/openapi/api.yaml
+    operations:
+      # builds list | describe | create
+      - GetV1ProjectsProjectIdBuilds
+      - GetV1BuildsBuildId
+      - PostV1ProjectsProjectIdBuilds
+      # deploys list | describe | create | update | delete, deploy
+      - GetV1ProjectsProjectIdEnvironmentsEnvironmentIdDeploys
+      - GetV1DeploysDeployId
+      - PostV1ProjectsProjectIdEnvironmentsEnvironmentIdDeploys
+      - PutV1DeploysDeployId
+      - DeleteV1DeploysDeployId
+      # routes list | create | delete
+      - GetV1DeploysDeployIdRoutes
+      - PostV1DeploysDeployIdRoutes
+      - DeleteV1DeploysDeployIdRoutesRouteId
+      # domains list | create | verify | delete
+      - GetV1OrganizationsOrganizationIdDomains
+      - PostV1OrganizationsOrganizationIdDomains
+      - PostV1OrganizationsOrganizationIdDomainsDomainVerify
+      - DeleteV1OrganizationsOrganizationIdDomainsDomain
+    drop_fields:
+      # Game-server ports: not part of the CLI and their descriptions are
+      # about the platform's internals.
+      - schemas/Build.ports
+      - requestBodies/CreateBuildRequest.ports
+    reviewed:
+      # Returned to customers today; useful for support and debugging.
+      - schemas/DeployPlacement.cluster_name
+      # Public custom-domain routing.
+      - schemas/Route.hostname
+      - requestBodies/CreateRouteRequest.hostname
+    descriptions:
+      "#/components/schemas/DeployEnvVar/description": Environment variable with a plain value.
+      "#/components/schemas/DeploySecretRef/description": Reference to an environment secret by key; the variable takes the secret's value.
+      "#/components/schemas/Deploy/properties/env/description": Env entries (plain vars or secret refs).
+
+  org:
+    path: cmd/apps/org-api/api/openapi/api.yaml
+    operations:
+      # orgs list | describe
+      - GetV1Organizations
+      - GetV1OrganizationsOrganizationId
+      # projects list | describe
+      - GetV1OrganizationsOrganizationIdProjects
+      - GetV1ProjectsProjectId
+      # envs list | describe
+      - GetV1ProjectsProjectIdEnvironments
+      - GetV1EnvironmentsEnvironmentId
+      # secrets list | set | delete
+      - ListEnvironmentSecretsV1
+      - CreateEnvironmentSecretV1
+      - DeleteEnvironmentSecretV1
+      # pods list | describe
+      - GetV1ProjectsProjectIdPods
+      - GetV1EnvironmentsEnvironmentIdPods
+      - GetV1DeploysDeployIdPods
+      - GetV1PodsPodId
+      # --location name resolution
+      - GetV1Locations
+    drop_fields:
+      # Game-server host ports: not part of the CLI.
+      - schemas/Pod.host_ports
+    reviewed:
+      # Returned to customers today; useful for support and debugging.
+      - schemas/Pod.cluster_name
+    descriptions:
+      "#/paths/~1v1~1projects~1{project_id}~1environments~1{environment_id}~1secrets/get/description": Lists the secret keys in the environment. Secret values are never returned.
+      "#/paths/~1v1~1projects~1{project_id}~1environments~1{environment_id}~1secrets~1{secret_name}/post/description": Create or update a secret in the environment.
+      "#/paths/~1v1~1projects~1{project_id}~1pods/get/description": Lists the pods belonging to the project.
+      "#/paths/~1v1~1environments~1{environment_id}~1pods/get/description": Lists the pods belonging to the environment.
+      "#/paths/~1v1~1deploys~1{deploy_id}~1pods/get/description": Lists the pods belonging to the deploy.
+      "#/paths/~1v1~1pods~1{pod_id}/get/description": Returns a single pod. Returns 404 if the caller is not a member of the pod's organization.
+
+  logs:
+    path: cmd/apps/logs-api/api/openapi/api.yaml
+    operations:
+      # logs (history; --follow uses the WebSocket, hand-written in #254)
+      - GetV1DeploysDeployIdLogs
+
+  metrics:
+    path: cmd/apps/metrics-api/api/openapi/api.yaml
+    operations:
+      # metrics <deploy|pod> [--type]
+      - GetV1MetricTypes
+      - GetV1DeploysDeployIdMetrics
+      - GetV1PodsPodIdMetrics

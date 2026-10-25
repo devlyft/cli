@@ -9,6 +9,12 @@ updates:
     groups:
       gomod:
         patterns: ["*"]
+    ignore:
+      # Code generation must match the platform: these move together with
+      # its oapi-codegen version, not on their own.
+      - dependency-name: github.com/oapi-codegen/*
+      - dependency-name: github.com/getkin/kin-openapi
+      - dependency-name: github.com/oasdiff/*
   - package-ecosystem: github-actions
     directory: /
     schedule:
