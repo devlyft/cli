@@ -24,8 +24,6 @@ linters:
       enable-all: true
       disabled-checks:
         - unnamedResult
-    misspell:
-      locale: UK
     revive:
       rules:
         - name: exported
