@@ -49,6 +49,12 @@ func TestScripts(t *testing.T) {
 			// The update notifier is off without a terminal anyway; be explicit.
 			env.Setenv("DEVLYFT_NO_UPDATE_NOTIFIER", "1")
 			env.Setenv("NO_COLOR", "")
+			// testscript points HOME at a missing directory and leaves
+			// AppData unset on Windows, so give every script its own
+			// config directory.
+			cfg := filepath.Join(env.WorkDir, ".config")
+			env.Setenv("XDG_CONFIG_HOME", cfg)
+			env.Setenv("AppData", cfg)
 			return nil
 		},
 		Cmds: map[string]func(ts *testscript.TestScript, neg bool, args []string){
