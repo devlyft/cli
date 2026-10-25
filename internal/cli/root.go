@@ -95,7 +95,10 @@ func setup(f *cmdutil.Factory, flags *globalFlags) error {
 // the only place errors are printed and mapped to exit codes.
 func Execute(ctx context.Context, ios *iostreams.IOStreams, args []string) int {
 	f := &cmdutil.Factory{IO: ios}
-	return execute(ctx, f, NewRootCmd(f), args)
+	notifier := startUpdateCheck(ctx, ios, args)
+	code := execute(ctx, f, NewRootCmd(f), args)
+	notifier.finish(code)
+	return code
 }
 
 func execute(ctx context.Context, f *cmdutil.Factory, root *cobra.Command, args []string) int {
