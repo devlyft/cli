@@ -10,6 +10,7 @@ require (
 	github.com/itchyny/gojq v0.12.19
 	github.com/oapi-codegen/runtime v1.6.0
 	github.com/spf13/cobra v1.10.2
+	github.com/zalando/go-keyring v0.2.8
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/mod v0.42.0
@@ -19,9 +20,11 @@ require (
 
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
+	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/go-openapi/jsonpointer v0.22.5 // indirect
 	github.com/go-openapi/swag/jsonname v0.25.5 // indirect
+	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itchyny/timefmt-go v0.1.8 // indirect
 	github.com/josharian/intern v1.0.0 // indirect

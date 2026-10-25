@@ -1,0 +1,39 @@
+name: spike keyring probe
+
+# Throwaway spike for devlyft/devlyft#261: runs hack/keyring-probe against the
+# OS credential store on each hosted runner. Manual only; uses no secrets.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: probe (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build probe
+        run: go build -o keyring-probe${{ runner.os == 'Windows' && '.exe' || '' }} ./hack/keyring-probe
+      - name: Probe (runner as-is)
+        shell: bash
+        run: ./keyring-probe -timeout 20s -sizes 512,1024,2048,2560,2561,2900,3000,4096,8192
+      - name: Probe (Linux, gnome-keyring unlocked on a private session bus)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gnome-keyring dbus-x11
+          dbus-run-session -- sh -c '
+            printf "probe-password" | gnome-keyring-daemon --unlock --components=secrets >/dev/null
+            ./keyring-probe -timeout 20s -sizes 512,2560,8192,65536
+          '
