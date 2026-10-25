@@ -1,13 +1,14 @@
 # Tool versions are pinned here and in .github/workflows; keep them in sync.
 GOLANGCI_LINT_VERSION ?= v2.15.0
 GOVULNCHECK_VERSION   ?= v1.9.0
+GORELEASER_VERSION    ?= v2.19.0
 
 BIN     ?= bin/devlyft
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/devlyft/cli/internal/version.Version=$(VERSION)
 
 .DEFAULT_GOAL := build
-.PHONY: build test cover lint fmt vuln tidy check clean help
+.PHONY: build test cover lint fmt vuln tidy check snapshot clean help
 
 build: ## Build the devlyft binary into bin/
 	go build -trimpath -ldflags '$(LDFLAGS)' -o $(BIN) ./cmd/devlyft
@@ -33,8 +34,11 @@ tidy: ## Tidy go.mod and go.sum
 
 check: lint test vuln ## Run everything CI runs
 
+snapshot: ## Build unsigned release archives for every platform into dist/
+	go run github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION) release --snapshot --clean --skip=sign,sbom
+
 clean:
-	rm -rf bin coverage.out
+	rm -rf bin dist coverage.out
 
 help: ## Show this help
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
