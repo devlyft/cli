@@ -1,5 +1,9 @@
 version: "2"
 
+run:
+  # Lint the smoke tests too (test/smoke).
+  build-tags: [smoke]
+
 linters:
   enable:
     - errorlint
