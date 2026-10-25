@@ -84,3 +84,24 @@ jobs:
           distribution: goreleaser
           version: "~> v2"
           args: release --snapshot --clean --skip=sign,sbom
+      - name: shellcheck install.sh
+        run: shellcheck --shell=sh install.sh
+      - name: install.sh installs the snapshot
+        run: |
+          version=$(jq -r .version dist/metadata.json)
+          DEVLYFT_DOWNLOAD_BASE="file://$PWD/dist" DEVLYFT_VERSION="$version" \
+            DEVLYFT_INSTALL_DIR="$RUNNER_TEMP/bin" sh install.sh
+          "$RUNNER_TEMP/bin/devlyft" version | grep -F "devlyft $version"
+      - name: install.sh rejects a tampered archive
+        run: |
+          version=$(jq -r .version dist/metadata.json)
+          bad="$RUNNER_TEMP/tampered"
+          mkdir -p "$bad"
+          cp dist/devlyft_"$version"_* "$bad"/
+          cp "dist/devlyft_${version}_linux_arm64.tar.gz" "$bad/devlyft_${version}_linux_amd64.tar.gz"
+          if DEVLYFT_DOWNLOAD_BASE="file://$bad" DEVLYFT_VERSION="$version" \
+            DEVLYFT_INSTALL_DIR="$RUNNER_TEMP/bad-bin" sh install.sh; then
+            echo "install.sh accepted a tampered archive" >&2
+            exit 1
+          fi
+          test ! -e "$RUNNER_TEMP/bad-bin/devlyft"

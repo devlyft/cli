@@ -62,6 +62,41 @@ signs:
       - "--yes"
     output: true
 
+# Homebrew: `brew install devlyft/tap/devlyft`. Casks replace the deprecated
+# `brews` formulae. The cask is pushed to devlyft/homebrew-tap with a token
+# scoped to that repository only; without the token (for example before the
+# tap exists) the upload is skipped instead of failing the release.
+homebrew_casks:
+  - name: devlyft
+    ids: [devlyft]
+    binaries: [devlyft]
+    description: Deploy and operate apps on DevLyft
+    homepage: https://github.com/devlyft/cli
+    license: Apache-2.0
+    repository:
+      owner: devlyft
+      name: homebrew-tap
+      token: '{{ envOrDefault "HOMEBREW_TAP_GITHUB_TOKEN" "" }}'
+    directory: Casks
+    commit_author:
+      name: devlyft-release-bot
+      email: noreply@devlyft.io
+    commit_msg_template: "Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
+    skip_upload: '{{ if not (envOrDefault "HOMEBREW_TAP_GITHUB_TOKEN" "") }}true{{ end }}'
+    # Runs `devlyft completion <shell>` at install time.
+    generate_completions_from_executable:
+      executable: devlyft
+      args: [completion]
+      shells: [bash, zsh, fish]
+    hooks:
+      post:
+        # The binaries are not notarized (see docs/releasing.md); without
+        # this, Gatekeeper refuses to run a cask-installed binary.
+        install_steps: |
+          on_macos do
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/devlyft"]
+          end
+
 # release-please writes the changelog and the release notes.
 changelog:
   disable: true
