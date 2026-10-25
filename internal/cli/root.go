@@ -58,6 +58,7 @@ func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 	pf.StringVar(&flags.verbosity, "verbosity", "warning", "Log level for diagnostics on stderr: "+strings.Join(cmdutil.Verbosities, ", ")+" (DEVLYFT_DEBUG=1 for debug)")
 
 	root.AddCommand(newVersionCmd())
+	root.AddCommand(newCompletionCmd())
 
 	return root
 }
