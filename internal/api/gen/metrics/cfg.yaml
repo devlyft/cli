@@ -1,0 +1,6 @@
+# oapi-codegen configuration; see generate.go.
+package: metrics
+generate:
+  client: true
+  models: true
+output: metrics.gen.go

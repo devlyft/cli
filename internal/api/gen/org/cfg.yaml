@@ -1,0 +1,6 @@
+# oapi-codegen configuration; see generate.go.
+package: org
+generate:
+  client: true
+  models: true
+output: org.gen.go

@@ -24,6 +24,11 @@ jobs:
         run: |
           go mod tidy
           git diff --exit-code -- go.mod go.sum
+      - name: generated code is up to date
+        run: |
+          make generate
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
 
   test:
     name: test (${{ matrix.os }})

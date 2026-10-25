@@ -8,7 +8,7 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/devlyft/cli/internal/version.Version=$(VERSION)
 
 .DEFAULT_GOAL := build
-.PHONY: build test cover lint fmt vuln tidy check snapshot clean help
+.PHONY: build test cover lint fmt vuln tidy generate vendor-specs check snapshot clean help
 
 build: ## Build the devlyft binary into bin/
 	go build -trimpath -ldflags '$(LDFLAGS)' -o $(BIN) ./cmd/devlyft
@@ -31,6 +31,13 @@ vuln: ## Check dependencies for known vulnerabilities
 
 tidy: ## Tidy go.mod and go.sum
 	go mod tidy
+
+generate: ## Regenerate API clients and mocks from internal/api/specs
+	go generate ./internal/api/...
+
+vendor-specs: ## Re-vendor pruned specs from the platform repo (needs access; REF=<sha>)
+	hack/vendor-specs.sh $(REF)
+	$(MAKE) generate
 
 check: lint test vuln ## Run everything CI runs
 
