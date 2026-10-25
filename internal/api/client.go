@@ -95,6 +95,10 @@ type Client interface {
 	GetPod(ctx context.Context, podID string) (*Pod, error)
 
 	GetLogs(ctx context.Context, deployID string, q *LogsQuery) (*LogsResponse, error)
+	// FollowLogs streams a deploy's new log lines to emit over the
+	// WebSocket until ctx is cancelled, reconnecting and filling gaps from
+	// GetLogs as needed. It returns ctx.Err() when cancelled.
+	FollowLogs(ctx context.Context, deployID string, opts *FollowOptions, emit func(LogEntry) error) error
 
 	ListMetricTypes(ctx context.Context) ([]string, error)
 	GetDeployMetrics(ctx context.Context, deployID string, q MetricsQuery) (*MetricsResponse, error)

@@ -1,0 +1,9 @@
+$ devlyft logs 6f1d3c2a-8a4b-4f7e-9c11-2b3d4e5f6a7b -f
+--- exit 0
+--- stdout
+listening on :8080
+{"level":"error","msg":"db\ttimeout"}
+no pod
+GET / 200
+--- stderr
+Log stream interrupted; reconnecting.

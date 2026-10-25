@@ -86,6 +86,18 @@ Top-level settings are managed with `devlyft config get|set|list` (`api_url`, `c
 
 **Proxies and TLS inspection.** `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` are honoured. If your network re-signs TLS traffic, point `DEVLYFT_CA_BUNDLE` or `devlyft config set ca_bundle` at a PEM file of the extra CA certificates; they are trusted in addition to the system roots, and every command that connects prints a notice while one is in use.
 
+## Logs
+
+```sh
+devlyft logs <deploy-id>                    # recent lines (last hour)
+devlyft logs <deploy-id> --follow           # keep streaming until Ctrl-C
+devlyft logs <deploy-id> -f --format json   # one JSON object per line
+```
+
+`--follow` reconnects on its own and fills in anything logged while it was
+disconnected. See [docs/logs.md](docs/logs.md) for the flags and how the live
+tail works.
+
 ## Privacy and update checks
 
 devlyft has no telemetry in v1: it does not collect or send usage data.

@@ -19,6 +19,7 @@ import (
 	"github.com/devlyft/cli/internal/auth/credstore"
 	authcmd "github.com/devlyft/cli/internal/cli/auth"
 	configcmd "github.com/devlyft/cli/internal/cli/config"
+	logscmd "github.com/devlyft/cli/internal/cli/logs"
 	"github.com/devlyft/cli/internal/clierr"
 	"github.com/devlyft/cli/internal/cmdutil"
 	"github.com/devlyft/cli/internal/config"
@@ -78,6 +79,7 @@ func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 	root.AddCommand(authcmd.NewCmd(f))
 	root.AddCommand(configcmd.NewConfigCmd(f))
 	root.AddCommand(configcmd.NewContextCmd(f))
+	root.AddCommand(logscmd.NewCmd(f))
 
 	return root
 }

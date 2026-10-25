@@ -137,6 +137,45 @@ func (p *Printer) Print(r Result) error {
 	return fmt.Errorf("unhandled format %q", p.opts.Format)
 }
 
+// Record is one item of a stream, such as a log line, printed as soon as
+// it arrives rather than collected into a list.
+type Record struct {
+	// Data is printed by JSON (one compact object per line), YAML (one
+	// document each) and --jq (applied to each record).
+	Data any
+	// Text is the human form, printed for the default and table formats.
+	Text string
+	// Row is printed tab-separated for TSV.
+	Row []string
+}
+
+// PrintRecord writes one record of a stream to stdout. --quiet has no IDs
+// to print for records, so it prints Text.
+func (p *Printer) PrintRecord(r *Record) error {
+	w := p.ios.Out
+	if p.opts.JQ != "" {
+		return writeJQ(w, p.opts.JQ, r.Data)
+	}
+	switch p.opts.Format {
+	case FormatJSON:
+		enc := json.NewEncoder(w)
+		enc.SetEscapeHTML(false)
+		return enc.Encode(r.Data)
+	case FormatYAML:
+		if _, err := io.WriteString(w, "---\n"); err != nil {
+			return err
+		}
+		return writeYAML(w, r.Data)
+	case FormatTSV:
+		_, err := fmt.Fprintln(w, strings.Join(sanitizeRow(r.Row), "\t"))
+		return err
+	case FormatTable, FormatDefault:
+		_, err := fmt.Fprintln(w, r.Text)
+		return err
+	}
+	return fmt.Errorf("unhandled format %q", p.opts.Format)
+}
+
 func (p *Printer) writeTable(w io.Writer, r Result, aligned bool) error {
 	if r.Table == nil {
 		return writeYAML(w, r.Data)

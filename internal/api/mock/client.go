@@ -157,6 +157,20 @@ func (mr *MockClientMockRecorder) DeleteSecret(ctx, projectID, envID, name any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSecret", reflect.TypeOf((*MockClient)(nil).DeleteSecret), ctx, projectID, envID, name)
 }
 
+// FollowLogs mocks base method.
+func (m *MockClient) FollowLogs(ctx context.Context, deployID string, opts *api.FollowOptions, emit func(api.LogEntry) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FollowLogs", ctx, deployID, opts, emit)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FollowLogs indicates an expected call of FollowLogs.
+func (mr *MockClientMockRecorder) FollowLogs(ctx, deployID, opts, emit any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FollowLogs", reflect.TypeOf((*MockClient)(nil).FollowLogs), ctx, deployID, opts, emit)
+}
+
 // GetBuild mocks base method.
 func (m *MockClient) GetBuild(ctx context.Context, buildID string) (*api.Build, error) {
 	m.ctrl.T.Helper()
