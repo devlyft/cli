@@ -1,0 +1,6 @@
+$ devlyft widgets -q
+--- exit 0
+--- stdout
+0b1c
+7f2e
+--- stderr

@@ -1,0 +1,6 @@
+$ devlyft fail --code rollout_failed
+--- exit 8
+--- stdout
+--- stderr
+Error: failed with rollout_failed
+Hint: try again

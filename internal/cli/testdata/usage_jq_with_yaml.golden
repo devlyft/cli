@@ -1,0 +1,5 @@
+$ devlyft widgets --format yaml --jq .
+--- exit 2
+--- stdout
+--- stderr
+{"code":"invalid_argument","message":"--jq cannot be combined with --format yaml","http_status":null,"request_id":null,"details":null,"retryable":false}

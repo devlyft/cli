@@ -1,0 +1,6 @@
+$ devlyft widgets --format xml
+--- exit 2
+--- stdout
+--- stderr
+Error: invalid --format "xml": must be one of table, tsv, json, yaml
+Hint: Run 'devlyft widgets --help' for usage.

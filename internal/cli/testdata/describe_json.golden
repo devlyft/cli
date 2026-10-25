@@ -1,0 +1,11 @@
+$ devlyft widget --format json
+--- exit 0
+--- stdout
+{
+  "id": "0b1c",
+  "name": "web",
+  "labels": {
+    "tier": "frontend"
+  }
+}
+--- stderr

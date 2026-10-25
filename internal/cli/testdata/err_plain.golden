@@ -1,0 +1,5 @@
+$ devlyft fail --code plain
+--- exit 1
+--- stdout
+--- stderr
+Error: dial tcp: connection refused

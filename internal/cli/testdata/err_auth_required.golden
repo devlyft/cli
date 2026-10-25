@@ -1,0 +1,6 @@
+$ devlyft fail --code auth_required
+--- exit 3
+--- stdout
+--- stderr
+Error: failed with auth_required
+Hint: try again

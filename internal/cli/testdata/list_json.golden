@@ -1,0 +1,17 @@
+$ devlyft widgets --format json
+--- exit 0
+--- stdout
+[
+  {
+    "id": "0b1c",
+    "name": "web",
+    "labels": {
+      "tier": "frontend"
+    }
+  },
+  {
+    "id": "7f2e",
+    "name": "worker\twith tab"
+  }
+]
+--- stderr

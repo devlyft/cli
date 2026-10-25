@@ -1,0 +1,6 @@
+$ devlyft widgets --jq .[].name
+--- exit 0
+--- stdout
+web
+worker	with tab
+--- stderr

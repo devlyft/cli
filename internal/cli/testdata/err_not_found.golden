@@ -1,0 +1,6 @@
+$ devlyft fail --code not_found
+--- exit 4
+--- stdout
+--- stderr
+Error: failed with not_found
+Hint: try again

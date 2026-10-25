@@ -1,0 +1,3 @@
+# Check text files out with LF everywhere, including Windows, so golden
+# files compare byte for byte with the CLI's output.
+* text=auto eol=lf

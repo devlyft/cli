@@ -1,0 +1,6 @@
+$ devlyft fail --code conflict
+--- exit 5
+--- stdout
+--- stderr
+Error: failed with conflict
+Hint: try again

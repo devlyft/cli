@@ -1,0 +1,5 @@
+$ devlyft fail --status 429 --format json
+--- exit 1
+--- stdout
+--- stderr
+{"code":"unavailable","message":"server said no","http_status":429,"request_id":null,"details":null,"retryable":true}

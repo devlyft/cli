@@ -1,0 +1,6 @@
+$ devlyft fail --code unavailable
+--- exit 1
+--- stdout
+--- stderr
+Error: failed with unavailable
+Hint: try again
